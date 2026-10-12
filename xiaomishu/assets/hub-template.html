@@ -1,0 +1,504 @@
+<title>我的待办库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one calm column — a week strip on top, then tabs; each life area is a "stamp" colour, like hanko on a ledger. */
+:root{
+  --bg:#F2F4F6; --paper:#FFFFFF; --ink:#1D2330; --muted:#677080; --line:#DCE1E7;
+  --accent:#2E4A7A; --accent-soft:#E3EAF5; --warn:#B4532A; --warn-soft:#F8E7DE; --ok:#2F7A55; --ok-soft:#E0F1E8;
+  --a-work:#3B5B92; --a-partner:#A0522D; --a-me:#C2417A; --a-health:#2F7A55; --a-home:#8A6A3B; --a-pet:#B0627A; --a-money:#6B6A2E; --a-project:#2A7C86; --a-hobby:#6A4F9A; --a-people:#B4532A; --a-misc:#6E6A66;
+  --display:"Zen Maru Gothic","PingFang SC","Hiragino Sans GB","Noto Sans SC",system-ui,sans-serif;
+  --body:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11141A; --paper:#1A1F28; --ink:#E5E8EE; --muted:#97A0AE; --line:#2B323E;
+  --accent:#9DB6E6; --accent-soft:#223049; --warn:#F0A07C; --warn-soft:#3A2419; --ok:#7FCFA2; --ok-soft:#173226;
+  --a-work:#8FA9DD; --a-partner:#E0A07A; --a-me:#F09AC0; --a-health:#7FCFA2; --a-home:#D2B07C; --a-pet:#E79AB2; --a-money:#C9C77A; --a-project:#7CCAD3; --a-hobby:#B9A2E6; --a-people:#F0A07C; --a-misc:#B5B0AA;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11141A; --paper:#1A1F28; --ink:#E5E8EE; --muted:#97A0AE; --line:#2B323E;
+  --accent:#9DB6E6; --accent-soft:#223049; --warn:#F0A07C; --warn-soft:#3A2419; --ok:#7FCFA2; --ok-soft:#173226;
+  --a-work:#8FA9DD; --a-partner:#E0A07A; --a-me:#F09AC0; --a-health:#7FCFA2; --a-home:#D2B07C; --a-pet:#E79AB2; --a-money:#C9C77A; --a-project:#7CCAD3; --a-hobby:#B9A2E6; --a-people:#F0A07C; --a-misc:#B5B0AA;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--display);font-weight:700;font-size:26px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.capture{display:flex;gap:8px}
+.capture input{flex:1;min-width:0;font:inherit;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.capture input:focus,select:focus,textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tabs button{white-space:nowrap;border-radius:999px;padding:6px 14px;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+section.panel{display:flex;flex-direction:column;gap:12px}
+.day{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dayhead b{font-family:var(--display);font-size:16px}
+.load{font-size:12px;color:var(--muted)}
+.load.full{color:var(--warn)}
+ul.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+li.item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:7px 2px;border-top:1px dashed var(--line)}
+li.item:first-child{border-top:0}
+.chk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--muted);background:transparent;padding:0;margin-top:2px}
+.chk:hover{border-color:var(--ok)}
+li.done .t{text-decoration:line-through;color:var(--muted)}
+li.done .chk{background:var(--ok);border-color:var(--ok)}
+.t{min-width:0;word-break:break-word;cursor:pointer}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.stamp{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid currentColor;line-height:1.6;white-space:nowrap}
+.due{font-size:12px;color:var(--muted)}
+.due.late{color:var(--warn);font-weight:600}
+.empty{color:var(--muted);font-size:13px;padding:4px 0}
+.tm{display:inline-block;min-width:3.2em;color:var(--accent);font-weight:500;margin-right:8px}
+.dur{font-size:12px;color:var(--muted);margin-left:8px;white-space:nowrap}
+.day.today li.item{padding:9px 2px}
+.day.today .chk{width:22px;height:22px}
+.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.area{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left}
+.area h3{margin:0;font-family:var(--display);font-size:17px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.pill{align-self:flex-start;font-size:12px;padding:2px 9px;border-radius:999px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.idle{background:var(--accent-soft);color:var(--accent)}
+.area .next{font-size:13px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.box h2{font-family:var(--display);font-size:17px;margin:0 0 6px}
+.editor{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:8px 0 4px}
+.editor label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.editor input,.editor select,.editor textarea{font:inherit;font-size:14px;padding:7px 9px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-width:0}
+.editor textarea{grid-column:1 / -1;min-height:56px;resize:vertical}
+.editor .row{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap}
+.danger{color:var(--warn)}
+.note{font-size:12px;color:var(--muted);white-space:pre-wrap}
+.thumb{display:block;max-width:220px;max-height:160px;margin-top:6px;border-radius:10px;border:1px solid var(--line);object-fit:cover;cursor:zoom-in}
+.thumb.big{max-width:100%;max-height:none;cursor:zoom-out}
+.routine-next{font-size:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:13px}
+.status{font-size:13px;color:var(--muted)}
+.tm{color:var(--muted);font-weight:500}
+.tm.fixed{color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:0 6px;font-weight:600;min-width:0}
+li.locked .t{color:var(--muted)} li.locked .chk{opacity:.4}
+.lockTxt{font-size:11px;color:var(--muted)}
+.proj{display:flex;flex-direction:column;gap:8px}
+.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap} .ph h2{margin:0}
+.bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden} .bar span{display:block;height:100%;background:var(--a-project);border-radius:999px}
+.nextstep{font-size:14px}
+.lateTxt{color:var(--warn)}
+details summary{cursor:pointer;color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pmenu{margin-left:auto;position:relative}
+.pmenu summary{list-style:none;cursor:pointer;font-size:20px;line-height:1;padding:2px 10px;border-radius:8px;color:var(--muted)}
+.pmenu summary::-webkit-details-marker{display:none}
+.pmenu[open] summary{background:var(--accent-soft)}
+.pmenu-list{position:absolute;right:0;top:100%;margin-top:4px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px;display:flex;flex-direction:column;min-width:120px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.pmenu-list button{border:0;text-align:left;padding:8px 10px;background:transparent}
+.pmenu-list button:hover{background:var(--accent-soft)}
+.bookline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--ink)}
+.bookline input{font:inherit;font-size:13px;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.chip{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{min-width:0}
+.titleRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.titleRow h1{margin:0}
+.toolsBtn{flex:none;font:inherit;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer}
+.toolsBtn[aria-expanded="true"]{color:var(--accent);border-color:var(--accent)}
+.toolsBody{display:flex;flex-direction:column;gap:8px}
+.toolsBody[hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){.day,.area{transition:border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="titleRow"><h1 id="hubTitle">我的待办库</h1><button type="button" id="toolsBtn" class="toolsBtn" aria-expanded="false" aria-controls="toolsBody">＋ 🔍</button></div>
+    <div class="sub" id="summary">正在打开你的待办库…</div>
+  </header>
+
+  <div id="tools">
+    <div class="toolsBody" id="toolsBody" hidden>
+      <form class="capture" id="capForm">
+        <input id="capInput" placeholder="随手丢进来，之后再排日子" autocomplete="off" aria-label="新的待办">
+        <button class="primary" type="submit">放进收件箱</button>
+      </form>
+      <input id="search" type="search" placeholder="🔍 找一件事：比如「买菜」" aria-label="搜索待办" style="font:inherit;padding:9px 14px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink)">
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="week" aria-selected="true">本周</button>
+    <button role="tab" data-tab="projects" aria-selected="false">项目</button>
+    <button role="tab" data-tab="areas" aria-selected="false">分类</button>
+    <button role="tab" data-tab="inbox" aria-selected="false">收件箱</button>
+    <button role="tab" data-tab="routines" aria-selected="false">生活循环</button>
+    <button role="tab" data-tab="buy" aria-selected="false">要买的</button>
+    <button role="tab" data-tab="fun" aria-selected="false">闲了玩</button>
+    <button role="tab" data-tab="later" aria-selected="false">以后再说</button>
+  </nav>
+
+  <section class="panel" id="panel"></section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+let AREAS = {
+  work:{name:"💼 工作",c:"--a-work"}, partner:{name:"💞 另一半",c:"--a-partner"}, me:{name:"🙂 我自己",c:"--a-me"},
+  health:{name:"🩺 健康",c:"--a-health"}, home:{name:"🏠 家",c:"--a-home"}, pet:{name:"🐾 宠物",c:"--a-pet"},
+  money:{name:"💰 钱",c:"--a-money"}, project:{name:"🛠️ 项目",c:"--a-project"}, hobby:{name:"🎤 爱好",c:"--a-hobby"},
+  people:{name:"💌 朋友家人",c:"--a-people"}, misc:{name:"📦 Misc",c:"--a-misc"}
+};
+const KINDS = {task:"要做", buy:"要买", idea:"点子", fun:"闲了玩", life:"吃饭睡觉"};
+const DAY_CAP = 4; // 每天最多排几件，留弹性
+const WD = ["周日","周一","周二","周三","周四","周五","周六"];
+
+let assetsNs = null;
+let db = null, items = [], routines = [], projects = [], tab = "week", areaFilter = null, openId = null, bookOpen = null, loaded = {items:false, routines:false};
+const openProjs = new Set();
+const STAGES = {idea:"💡 点子", doing:"🔨 进行中", paused:"先放着", done:"✅ 完成了"};
+try { const t = localStorage.getItem("hub.tab"); if (t) tab = t; } catch(e) {}
+
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayStr = () => ymd(new Date());
+const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d+n); return ymd(x); };
+const diffDays = (a,b) => { const p=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}; return Math.round((p(b)-p(a))/86400000); };
+const fmt = s => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); return (m)+"/"+d+" "+WD[x.getDay()]; };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,1800); }
+function durTxt(m){ m=Number(m)||0; if(!m) return ""; return m>=60 ? (m%60? `${Math.floor(m/60)} 小时 ${m%60} 分`:`${m/60} 小时`) : `${m} 分钟`; }
+const byTime = (a,b) => (a.time||"99")<(b.time||"99")?-1:(a.time||"99")>(b.time||"99")?1:0;
+function stamp(a){ if(!a||!AREAS[a]) return ""; return `<span class="stamp" style="color:var(${AREAS[a].c})">${AREAS[a].name}</span>`; }
+
+const open = () => items.filter(i => i.status !== "done");
+// 没记录过上次时间的循环事项不自动排进日程，只在「生活循环」里等她第一次打勾
+function routineNext(r){ return r.last ? addDays(r.last, r.everyDays||30) : null; }
+// 循环事项的阶段：wait 还早 / book 该预约了 / booked 已约好 / due 该做了 / none 还没记录
+const snoozed = r => !!(r.snooze && r.snooze > todayStr());
+const plannedOf = r => items.filter(i=>i.routine===r.id && i.status!=="done" && i.due).sort((a,b)=>a.due<b.due?-1:1)[0] || null;
+function rState(r){ const nx=routineNext(r), t=todayStr();
+  if (r.booked) return {s:"booked", nx};
+  if (!nx) return {s:"none", nx};
+  if (r.bookLead && t>=addDays(nx,-r.bookLead)) return {s:"book", nx};
+  if (!r.bookLead && t>=nx) return {s:"due", nx};
+  return {s:"wait", nx}; }
+const projOf = i => i.project ? projects.find(p=>p.id===i.project) : null;
+function projSteps(pid){ return items.filter(i=>i.project===pid).sort((a,b)=>(a.step||99)-(b.step||99)); }
+function projInfo(p){ const st=projSteps(p.id), done=st.filter(i=>i.status==="done"), next=st.find(i=>i.status!=="done");
+  const moved=[p.lastMoved, ...done.map(i=>i.doneAt)].filter(Boolean).sort().pop()||null; return {st,done,next,moved}; }
+function isLocked(i){ if(!i.project || i.status==="done") return false; const p=projOf(i); if(!p) return false; const nx=projInfo(p).next; return nx && nx.id!==i.id && (nx.step||99)<(i.step||99); }
+const timeHtml = i => i.time ? (i.fixed ? `<span class="mono tm fixed">🔒 ${esc(i.time)}</span> ` : i.approx ? `<span class="mono tm" style="opacity:.7">~${esc(i.time)}</span> ` : `<span class="mono tm">${esc(i.time)}</span> `) : "";
+
+function itemRow(i){
+  const t = todayStr();
+  const late = i.due && i.status!=="done" && i.due < t;
+  const metaBits = [stamp(i.area)];
+  const pj = projOf(i); if (pj && tab!=="projects") metaBits.push(`<span class="chip">🛠️ ${esc(pj.title)} · 第 ${i.step||"?"} 步</span>`);
+  const locked = isLocked(i); if (locked) metaBits.push(`<span class="lockTxt">等前一步做完</span>`);
+  if (i.kind && i.kind!=="task") metaBits.push(`<span class="stamp" style="color:var(--muted)">${KINDS[i.kind]}</span>`);
+  if (i.due && tab!=="week") metaBits.push(`<span class="due ${late?"late":""} mono">${fmt(i.due)}${late?" · 过期了":""}</span>`);
+  if (i.due && tab==="week" && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
+  let html = `<li class="item ${i.status==="done"?"done":""} ${locked?"locked":""}" data-id="${i.id}">
+    <button class="chk" data-act="toggle" aria-label="${i.status==="done"?"标记为没做":"标记为做完"}"></button>
+    <div style="min-width:0"><div class="t" data-act="edit">${timeHtml(i)}${esc(i.title)}${i.mins?`<span class="dur">${durTxt(i.mins)}</span>`:""}</div><div class="meta">${metaBits.join("")}</div>${i.note && openId!==i.id?`<div class="note">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
+    <span></span>`;
+  if (openId === i.id) html += editor(i);
+  return html + `</li>`;
+}
+function editor(i){
+  const areaOpts = `<option value="">（未分）</option>` + Object.entries(AREAS).map(([k,v])=>`<option value="${k}" ${i.area===k?"selected":""}>${v.name}</option>`).join("");
+  const kindOpts = Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${ (i.kind||"task")===k?"selected":""}>${v}</option>`).join("");
+  return `<div class="editor">
+    <label>名字<input id="e-title" value="${esc(i.title)}"></label>
+    <label>哪一天做<input id="e-due" type="date" value="${i.due||""}"></label>
+    <label>几点开始<input id="e-time" type="time" value="${i.time||""}"></label>
+    <label>时间类型<select id="e-fixed"><option value="">自己排的，可以挪</option><option value="1" ${i.fixed?"selected":""}>🔒 约好的固定时间</option><option value="approx" ${i.approx&&!i.fixed?"selected":""}>~ 大概这个时候</option></select></label>
+    <label>大概要多久（分钟）<input id="e-mins" type="number" min="0" step="5" value="${i.mins||""}"></label>
+    <label>分类<select id="e-area">${areaOpts}</select></label>
+    <label>类型<select id="e-kind">${kindOpts}</select></label>
+    <label>属于哪个项目<select id="e-proj"><option value="">（不属于）</option>${projects.filter(p=>p.stage!=="done").map(p=>`<option value="${p.id}" ${i.project===p.id?"selected":""}>${esc(p.title)}</option>`).join("")}</select></label>
+    <label>第几步<input id="e-step" type="number" min="1" step="1" value="${i.step||""}"></label>
+    <label style="grid-column:1/-1">备注<textarea id="e-note">${esc(i.note||"")}</textarea></label>
+    ${assetsNs?`<label>图片（截图、照片）<input id="e-img" type="file" accept="image/*"></label>${i.img?`<button data-act="rmimg" style="align-self:end">去掉图片</button>`:""}`:""}
+    <div class="row">
+      <button class="primary" data-act="save">保存</button>
+      <button data-act="later">${i.status==="someday"?"放回待办":"以后再说"}</button>
+      <button data-act="close">收起</button>
+      <button class="danger" data-act="del">删掉</button>
+    </div></div>`;
+}
+
+function routineLine(r, withBtn){
+  const st = rState(r);
+  if (st.s==="book"){
+    if (bookOpen===r.id) return `<div class="bookline" data-rid="${r.id}">📅 ${esc(r.title)} 约在 <input type="date" id="b-date" value="${st.nx}"> <input type="time" id="b-time"> <button data-ract="bookSave" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">存好</button> <button data-ract="bookCancel" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">算了</button></div>`;
+    return `<div class="bookline">📅 该预约了：${esc(r.title)} ${stamp(r.area)} <span class="due">大约 ${fmt(st.nx)} 该做</span> <button data-ract="book" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">约好了</button>${snoozed(r)?"":` <button data-ract="snooze" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">明天再说</button>`}</div>`;
+  }
+  return `<div class="note">↻ ${esc(r.title)} ${stamp(r.area)} ${withBtn?`<button data-ract="did" data-rid="${r.id}" style="padding:2px 8px;font-size:12px;margin-left:6px">今天做了</button>`:""}</div>`;
+}
+function renderWeek(){
+  const t = todayStr(), op = open().filter(i=>i.status!=="someday");
+  const late = op.filter(i=>i.due && i.due < t).sort((a,b)=>a.due<b.due?-1:1);
+  let h = `<div class="status"><span class="mono tm fixed">🔒</span> 约好的，不能挪</div>`;
+  if (late.length) h += `<div class="box"><h2>还欠着的</h2><ul class="items">${late.map(itemRow).join("")}</ul></div>`;
+  for (let k=0;k<7;k++){
+    const d = addDays(t,k);
+    const dayItems = items.filter(i=>i.due===d && i.status!=="someday" && (i.status!=="done" || k===0) && (!i.daily || k===0)).sort(byTime);
+    const rs = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false;
+      if (st.s==="book") return snoozed(r) ? d===r.snooze : k===0;
+      if (st.s==="due") return k===0 ? st.nx<=t : st.nx===d;
+      if (st.s==="wait" && !r.bookLead) return st.nx===d;
+      return false; });
+    const n = dayItems.filter(i=>i.status!=="done").length + rs.length;
+    h += `<div class="day ${k===0?"today":""}"><div class="dayhead"><b>${k===0?"今天 ":k===1?"明天 ":""}<span class="mono">${fmt(d)}</span></b>
+      ${(()=>{ const dn = dayItems.filter(i=>i.status==="done").length;
+        const left = dayItems.filter(i=>i.status!=="done");
+        const mins = left.filter(i=>i.kind!=="fun" && i.kind!=="life").reduce((s,i)=>s+(i.mins||15),0) + rs.length*15;
+        const wd = new Date(d+"T12:00:00").getDay(), weekend = wd===0||wd===6;
+        const cap = weekend ? 300 : 150, full = mins>cap;
+        const hrs = mins<60 ? `${Math.max(5,Math.round(mins/5)*5)} 分钟` : `${(Math.round(mins/30)/2).toString()} 小时`;
+        let s;
+        if (n===0) s = dn ? `都做完了 ✓ ${dn} 件` : "空着，留给临时的事";
+        else { s = `${n} 件 · 约 ${hrs}${full?"，有点满了":""}`; if (dn) s = `还剩 ${s} · 做完 ${dn}`; }
+        return `<span class="load ${full?"full":""}">${s}</span>`; })()}</div>`;
+    if (dayItems.length) h += `<ul class="items">${dayItems.map(itemRow).join("")}</ul>`;
+    if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
+    h += `</div>`;
+  }
+  const inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
+  h += `<div class="status">收件箱里还有 ${inboxN} 件没排日子。</div>`;
+  return h;
+}
+function projCard(p){
+  const t=todayStr(), {st,done,next,moved}=projInfo(p);
+  const pct = st.length ? Math.round(done.length/st.length*100) : 0;
+  const idle = moved ? diffDays(moved,t) : null;
+  const stalled = p.stage==="doing" && (idle===null ? (p.started && diffDays(p.started,t)>=14) : idle>=14);
+  const items3 = p.stage==="idea" ? `<button data-pact="doing">开工</button>` : p.stage==="doing" ? `<button data-pact="paused">先放着</button><button data-pact="done">标成完成</button>` : `<button data-pact="doing">接着做</button>`;
+  const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${items3}</div></details>`;
+  return `<div class="box proj" data-pid="${p.id}"><div class="ph"><h2>${esc(p.title)}</h2>${stamp(p.area)}${p.stage!=="doing"?`<span class="chip">${STAGES[p.stage]||""}</span>`:""}${menu}</div>
+    ${st.length?`<div class="bar" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div>
+    <div class="status">${done.length} / ${st.length} 步 · ${moved?(idle===0?"今天推进了":`上次推进：${idle} 天前（${fmt(moved)}）`):"还没开始"}${stalled?` · <b class="lateTxt">停住了：继续，还是先放着？</b>`:""}</div>`:`<div class="status">还没拆步骤</div>`}
+    ${next?`<div class="nextstep">下一步：<b>${esc(next.title)}</b>${next.due?` <span class="due mono">${fmt(next.due)}</span>`:` <span class="due">还没排日子</span>`}</div>`:st.length?`<div class="nextstep">步骤都做完了 🎉</div>`:""}
+    ${p.eta?`<div class="status">⏳ ${esc(p.eta)}</div>`:""}
+    ${p.why?`<div class="note">${esc(p.why)}</div>`:""}
+    <details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>全部步骤</summary><ul class="items">${st.map(itemRow).join("")}</ul>
+      <form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button type="submit">加</button></form></details>
+    </div>`;
+}
+function renderProjects(){
+  const by = s => projects.filter(p=>(p.stage||"idea")===s);
+  const doing = by("doing"), idea = by("idea"), rest = [...by("paused"), ...by("done")];
+  return `<div class="status">进行中的最好不超过 3 个。做项目的时间在「本周」里排成时间块。</div>`
+    + (doing.length ? doing.map(projCard).join("") : `<div class="empty">还没有进行中的项目。</div>`)
+    + `<div class="box"><h2>💡 点子池</h2>${idea.length?`<ul class="items">${idea.map(p=>`<li class="item"><span class="dot" style="background:var(--a-project);margin-top:7px"></span><div style="min-width:0"><div class="t">${esc(p.title)}</div><div class="meta">${stamp(p.area)}</div>${p.eta?`<div class="status">⏳ ${esc(p.eta)}</div>`:""}${p.why?`<div class="note">${esc(p.why)}</div>`:""}${(()=>{ const st=projSteps(p.id); return `<details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>${st.length?`步骤（${st.length}）`:"加步骤"}</summary>${st.length?`<ul class="items">${st.map(itemRow).join("")}</ul>`:""}<form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button type="submit">加</button></form></details>`; })()}</div><span data-pid="${p.id}"><button data-pact="doing" style="padding:4px 10px;font-size:13px">开工</button></span></li>`).join("")}</ul>`:`<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
+      <form class="capture addidea" style="margin-top:8px"><input placeholder="新点子" aria-label="新的项目点子"><button type="submit">放进点子池</button></form></div>`
+    + (rest.length ? `<details class="box"><summary>先放着 · 完成了（${rest.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${rest.map(projCard).join("")}</div></details>` : "");
+}
+function areaState(k){
+  const t=todayStr(), op=open().filter(i=>i.area===k && i.status!=="someday" && (i.kind||"task")!=="idea");
+  const lateN = op.filter(i=>i.due && i.due<t).length;
+  const doneN = items.filter(i=>i.area===k && i.status==="done" && i.doneAt && diffDays(i.doneAt,t)<=14).length + routines.filter(r=>r.area===k && r.last && diffDays(r.last,t)<=14).length;
+  const nextDated = op.filter(i=>i.due && i.due>=t).sort((a,b)=>a.due<b.due?-1:1)[0];
+  return {op, lateN, doneN, nextDated};
+}
+function renderAreas(){
+  if (areaFilter){
+    const k = areaFilter;
+    const list = items.filter(i=>i.area===k && i.status!=="done").sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1);
+    const rs = routines.filter(r=>r.area===k), ps = projects.filter(p=>p.area===k && p.stage!=="done");
+    return `<button data-act="back" style="align-self:flex-start">← 分类</button>
+      <div class="box"><h2><span class="dot" style="background:var(${AREAS[k].c})"></span> ${AREAS[k].name}</h2>
+      ${ps.length?`<div class="note" style="margin-bottom:6px">${ps.map(p=>`🛠️ ${esc(p.title)}（${STAGES[p.stage]||""}）`).join("<br>")}</div>`:""}
+      ${list.length?`<ul class="items">${list.map(itemRow).join("")}</ul>`:`<div class="empty">这里暂时没有要做的事。</div>`}
+      ${rs.length?`<div class="note" style="margin-top:8px">${rs.map(r=>`↻ ${esc(r.title)}，${routineNext(r)?`下次 ${fmt(routineNext(r))}`:"还没开始记录"}`).join("<br>")}</div>`:""}</div>`;
+  }
+  return `<div class="areas">${Object.entries(AREAS).map(([k,v])=>{
+    const s = areaState(k);
+    const nx = s.nextDated ? `下一件：${esc(s.nextDated.title)}（${fmt(s.nextDated.due)}）` : "";
+    return `<button class="area" data-area="${k}"><h3><span class="dot" style="background:var(${v.c})"></span>${v.name}</h3>
+      <div class="status">最近两周做完 ${s.doneN} 件 · 还有 ${s.op.length} 件${s.lateN?` · <span class="lateTxt">${s.lateN} 件过期</span>`:""}</div>${nx?`<div class="next">${nx}</div>`:""}</button>`;
+  }).join("")}</div>`;
+}
+function listBox(title, list, emptyMsg){
+  return `<div class="box"><h2>${title}</h2>${list.length?`<ul class="items">${list.map(itemRow).join("")}</ul>`:`<div class="empty">${emptyMsg}</div>`}</div>`;
+}
+function renderInbox(){
+  const list = open().filter(i=>!i.due && !i.project && i.status!=="someday" && (i.kind||"task")==="task");
+  return listBox("还没排日子的", list, "收件箱是空的。想到什么就从上面丢进来。") + `<div class="status">点一条，给它选一天、选个分类。项目里的步骤在「项目」页。</div>`;
+}
+function renderBuy(){
+  return listBox("要买的", open().filter(i=>i.kind==="buy" && i.status!=="someday"), "没有要买的东西。");
+}
+function renderFun(){
+  const f = open().filter(i=>i.kind==="fun" && i.status!=="someday" && !i.due);
+  return `<div class="status">闲下来不知道干嘛的时候来这里挑一件。不排日子，不算任务。</div>`
+    + listBox(`${(AREAS.partner&&AREAS.partner.name)||"💞 另一半"} · 一起玩`, f.filter(i=>i.area==="partner"), "还没有。")
+    + listBox("🎨 自己玩", f.filter(i=>i.area!=="partner"), "还没有。");
+}
+function renderLater(){
+  const some = items.filter(i=>i.status==="someday" || i.kind==="idea" && i.status!=="done");
+  const done = items.filter(i=>i.status==="done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1).slice(0,15);
+  return listBox("以后再说 · 小想法", some, "没有搁置的事。") + listBox("最近做完的", done, "还没有做完的记录。");
+}
+function renderRoutines(){
+  const t=todayStr();
+  const rs = routines.slice().sort((a,b)=>(routineNext(a)||"9")<(routineNext(b)||"9")?-1:1);
+  if (!rs.length) return `<div class="empty">还没有循环事项。</div>`;
+  const label = r => { const st=rState(r), pl=plannedOf(r);
+    if (pl && st.s!=="booked") return `<span class="due">已排到 ${fmt(pl.due)}${pl.time?` ${esc(pl.time)}`:""}${r.last?` · 上次 ${fmt(r.last)}`:""}</span>`;
+    if (st.s==="booked") return `<span class="due">已约好 ${fmt(r.booked)}</span>`;
+    if (st.s==="book") return `<span class="due late">该预约了 · 大约 ${fmt(st.nx)} 该做</span>`;
+    if (st.s==="due") return `<span class="due late">该做了（${fmt(st.nx)}）</span>`;
+    if (st.s==="none") return `<span class="due">还没开始记录，做第一次时点「今天做了」</span>`;
+    return `<span class="due">上次 ${fmt(r.last)} · 下次 ${fmt(st.nx)}${r.bookLead?`，${fmt(addDays(st.nx,-r.bookLead))} 起提醒预约`:""}</span>`; };
+  return `<div class="box"><h2>生活循环</h2><div class="status">要预约的事分三步：该预约了 → 约好了（变成一条 🔒 固定时间）→ 做完，自动算下一轮。</div><ul class="items">${rs.map(r=>`<li class="item"><span class="dot" style="background:var(${(AREAS[r.area]||{c:"--muted"}).c});margin-top:7px"></span>
+      <div style="min-width:0"><div class="t">${esc(r.title)}</div><div class="meta">${stamp(r.area)}<span class="due mono">每 ${r.everyDays} 天${r.bookLead?` · 要提前 ${r.bookLead} 天约`:""}</span> ${label(r)}</div>${r.note?`<div class="note">${esc(r.note)}</div>`:""}
+      ${rState(r).s==="book"&&bookOpen===r.id?routineLine(r,false):""}</div>
+      ${rState(r).s==="book"&&bookOpen!==r.id?`<button data-ract="book" data-rid="${r.id}" style="padding:4px 10px;font-size:13px">约好了</button>`:rState(r).s==="booked"?`<span></span>`:`<button data-ract="did" data-rid="${r.id}" style="padding:4px 10px;font-size:13px">今天做了</button>`}</li>`).join("")}</ul></div>`;
+}
+
+let q = "";
+function whereIs(i){ const t=todayStr(); const pj=projOf(i);
+  if (i.status==="done") return `做完了${i.doneAt?`（${fmt(i.doneAt)}）`:""}`;
+  if (i.status==="someday") return "在「以后再说」";
+  if (pj) return `在「项目」· ${pj.title} 第 ${i.step||"?"} 步${i.due?` · 排在 ${fmt(i.due)}`:""}`;
+  if (i.kind==="buy") return `在「要买的」${i.due?` · ${fmt(i.due)}`:""}`;
+  if (i.kind==="idea") return "在「以后再说」的小想法里";
+  if (i.due) return i.due<addDays(t,7) ? `在「本周」· ${fmt(i.due)}` : `排在 ${fmt(i.due)}（「分类」里能看到）`;
+  return "在「收件箱」，还没排日子"; }
+function renderSearch(){
+  const k = q.toLowerCase();
+  const hit = x => ((x.title||"")+" "+(x.note||"")+" "+(x.why||"")).toLowerCase().includes(k);
+  const its = items.filter(hit), ps = projects.filter(hit), rs = routines.filter(hit);
+  let h = `<div class="status">找到 ${its.length+ps.length+rs.length} 条「${esc(q)}」</div>`;
+  if (ps.length) h += `<div class="box"><h2>项目</h2>${ps.map(p=>`<div class="note">🛠️ ${esc(p.title)} · ${STAGES[p.stage]||""}</div>`).join("")}</div>`;
+  if (rs.length) h += `<div class="box"><h2>生活循环</h2>${rs.map(r=>`<div class="note">↻ ${esc(r.title)} · 每 ${r.everyDays} 天</div>`).join("")}</div>`;
+  if (its.length) h += `<div class="box"><h2>待办</h2><ul class="items">${its.map(i=>itemRow(i).replace('<div class="meta">',`<div class="meta"><span class="chip">${esc(whereIs(i))}</span>`)).join("")}</ul></div>`;
+  return h;
+}
+// 数据库一有变动就会重画页面；如果正在编辑某一条，先把还没保存的输入记下来，画完再填回去，免得被冲掉
+function render(){
+  const keep = {}; let focusId = null;
+  document.querySelectorAll(".editor [id^='e-'], .bookline [id^='b-']").forEach(el => { if (el.type!=="file") keep[el.id] = el.value; });
+  if (document.activeElement && document.activeElement.id && keep[document.activeElement.id]!==undefined) focusId = document.activeElement.id;
+  renderInner();
+  for (const [id,val] of Object.entries(keep)){ const el = document.getElementById(id); if (el) el.value = val; }
+  if (focusId){ const el = document.getElementById(focusId); if (el) el.focus(); }
+}
+function renderInner(){
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===tab)));
+  const p = $("#panel");
+  if (!db){ p.innerHTML = `<div class="empty">${loaded.failed?"这个页面现在读不到数据。用你自己的账号登录后打开它。":"正在连接…"}</div>`; return; }
+  if (!loaded.items){ p.innerHTML = `<div class="empty">正在读取待办…</div>`; return; }
+  const t=todayStr(), op=open().filter(i=>i.status!=="someday");
+  const rToday = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false; return (st.s==="book" && !snoozed(r)) || (st.s==="due" && st.nx<=t); }).length;
+  const todayN = op.filter(i=>i.due===t).length + rToday, lateN = op.filter(i=>i.due && i.due<t).length, inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
+  const doingN = projects.filter(p=>p.stage==="doing").length;
+  $("#summary").textContent = `${fmt(t)} · 今天 ${todayN} 件 · ${lateN?`欠着 ${lateN} 件 · `:""}收件箱 ${inboxN} 件 · ${doingN} 个项目在做`;
+  if (q){ p.innerHTML = renderSearch(); return; }
+  p.innerHTML = tab==="week"?renderWeek():tab==="projects"?renderProjects():tab==="areas"?renderAreas():tab==="inbox"?renderInbox():tab==="routines"?renderRoutines():tab==="buy"?renderBuy():tab==="fun"?renderFun():renderLater();
+}
+
+async function write(ref, fn, okMsg){
+  try { await fn(ref); if(okMsg) toast(okMsg); }
+  catch(e){ toast(e && e.code==="quota_exceeded" ? "存不下了：待办库满了" : "没存上，再试一次"); }
+}
+
+document.addEventListener("click", async ev => {
+  const tb = ev.target.closest("#tabs button");
+  if (tb){ tab = tb.dataset.tab; areaFilter=null; q=""; $("#search").value=""; openId=null; try{localStorage.setItem("hub.tab",tab)}catch(e){} render(); return; }
+  const ar = ev.target.closest("[data-area]");
+  if (ar){ areaFilter = ar.dataset.area; render(); return; }
+  const rb = ev.target.closest("[data-ract]");
+  if (rb && db){ const r = routines.find(x=>x.id===rb.dataset.rid); if(!r) return;
+    const act = rb.dataset.ract;
+    if (act==="did") await write(db.doc("routines/"+r.id), ref=>ref.update({last:todayStr(), booked:null}), `记下了：${r.title}`);
+    else if (act==="book"){ bookOpen = r.id; render(); }
+    else if (act==="snooze") await write(db.doc("routines/"+r.id), ref=>ref.update({snooze:addDays(todayStr(),1)}), `明天再提醒：${r.title}`);
+    else if (act==="bookCancel"){ bookOpen = null; render(); }
+    else if (act==="bookSave"){ const d=$("#b-date").value, tm=$("#b-time").value||null; if(!d){ toast("先选个日子"); return; }
+      bookOpen = null;
+      await write(db.collection("items"), c=>c.add({title:r.title, area:r.area||null, kind:"task", status:"todo", due:d, time:tm, fixed:true, routine:r.id, note:r.note||"", created:todayStr()}), null);
+      await write(db.doc("routines/"+r.id), ref=>ref.update({booked:d}), `约好了：${fmt(d)}`); }
+    return; }
+  const pb = ev.target.closest("[data-pact]");
+  if (pb && db){ const host = pb.closest("[data-pid]"); const pr = host && projects.find(x=>x.id===host.dataset.pid); if(!pr) return;
+    const stg = pb.dataset.pact, v = {stage:stg}; if (stg==="doing" && !pr.started) v.started = todayStr(); if (stg==="done") v.doneAt = todayStr();
+    await write(db.doc("projects/"+pr.id), ref=>ref.update(v), stg==="doing"?"开工了":stg==="done"?"项目完成 🎉":"先放着了"); return; }
+  const a = ev.target.closest("[data-act]"); if (!a) return;
+  if (a.dataset.act==="back"){ areaFilter=null; render(); return; }
+  const li = a.closest("li.item"); const id = li && li.dataset.id; const it = items.find(x=>x.id===id);
+  if (!it || !db) return;
+  const ref = db.doc("items/"+id);
+  switch(a.dataset.act){
+    case "toggle":
+      if (isLocked(it) && it.status!=="done") toast("这一步前面还有没做完的，先记成做完了");
+      await write(ref, r=>r.update(it.status==="done"?{status:"todo",doneAt:null}:{status:"done",doneAt:todayStr()}), it.status==="done"?"放回去了":"做完了");
+      if (it.routine && it.status!=="done"){ const r = routines.find(x=>x.id===it.routine); if (r) await write(db.doc("routines/"+r.id), x=>x.update({last: (it.due && it.due<=todayStr()) ? it.due : todayStr(), booked:null}), null); }
+      break;
+    case "edit": openId = openId===id?null:id; render(); break;
+    case "zoom": a.classList.toggle("big"); break;
+    case "rmimg": await write(ref, r=>r.update({img:null}), "图片去掉了"); break;
+    case "close": openId=null; render(); break;
+    case "later": await write(ref, r=>r.update({status: it.status==="someday"?"todo":"someday"}), it.status==="someday"?"放回待办了":"放到以后再说了"); openId=null; break;
+    case "del": await write(ref, r=>r.delete(), "删掉了"); openId=null; break;
+    case "save": {
+      const v = {title:$("#e-title").value.trim()||it.title, due:$("#e-due").value||null, time:$("#e-time").value||null, mins:Number($("#e-mins").value)||null, area:$("#e-area").value||null, kind:$("#e-kind").value, note:$("#e-note").value.trim(), fixed:$("#e-fixed").value==="1", approx:$("#e-fixed").value==="approx", project:$("#e-proj").value||null, step:Number($("#e-step").value)||null};
+      const f = $("#e-img") && $("#e-img").files[0];
+      if (f && assetsNs){ try { const up = await assetsNs.upload(f); v.img = up.id; } catch(e){ toast(e && e.code==="too_large" ? "图片太大了" : "图片没传上"); } }
+      openId=null; await write(ref, r=>r.update(v), "存好了"); break; }
+  }
+});
+
+document.addEventListener("submit", async ev => {
+  const f = ev.target; if (f.id==="capForm" || !db) return;
+  ev.preventDefault();
+  const inp = f.querySelector("input"); const v = inp.value.trim(); if (!v) return; inp.value = "";
+  if (f.classList.contains("addstep")){ const pr = projects.find(x=>x.id===f.dataset.pid); if(!pr) return;
+    const max = Math.max(0, ...projSteps(pr.id).map(i=>i.step||0));
+    await write(db.collection("items"), c=>c.add({title:v, status:"todo", kind:"task", area:pr.area||null, due:null, note:"", created:todayStr(), project:pr.id, step:max+1}), "加好了");
+  } else if (f.classList.contains("addidea")){
+    await write(db.collection("projects"), c=>c.add({title:v, stage:"idea", area:"project", why:"", created:todayStr()}), "放进点子池了");
+  }
+});
+document.addEventListener("toggle", ev => { const d = ev.target; if (d.tagName==="DETAILS" && d.dataset.pid){ d.open ? openProjs.add(d.dataset.pid) : openProjs.delete(d.dataset.pid); } }, true);
+
+$("#capForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const v = $("#capInput").value.trim(); if (!v || !db) return;
+  $("#capInput").value = "";
+  await write(db.collection("items"), c=>c.add({title:v, status:"todo", kind:"task", area:null, due:null, note:"", created:todayStr()}), "放进收件箱了");
+});
+
+// ⋯ 菜单：点菜单外任何地方、按 Esc，都收起来
+document.addEventListener("click", ev => {
+  document.querySelectorAll("details.pmenu[open]").forEach(d => { if (!d.contains(ev.target)) d.open = false; });
+}, true);
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape") document.querySelectorAll("details.pmenu[open]").forEach(d => d.open = false);
+});
+$("#search").addEventListener("input", e => { q = e.target.value.trim(); render(); });
+$("#toolsBtn").addEventListener("click", e => { const b=$("#toolsBody"), open=b.hidden; b.hidden=!open; e.currentTarget.setAttribute("aria-expanded", String(open));
+  if (open) $("#capInput").focus(); else if (q){ q=""; $("#search").value=""; render(); } });
+render();
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e) { db = null; }
+  if (!db){ loaded.failed = true; render(); return; }
+  try { assetsNs = await window.claude.use("assets"); } catch(e) { assetsNs = null; }
+  render();
+  db.collection("items").onSnapshot(s => { items = s.docs.map(d => ({id:d.id, ...d.data()})); loaded.items = true; render(); },
+    () => { loaded.failed = true; render(); });
+  db.collection("routines").onSnapshot(s => { routines = s.docs.map(d => ({id:d.id, ...d.data()})); loaded.routines = true; render(); }, () => {});
+  db.collection("meta").onSnapshot(s => { const c = s.docs.find(d => d.id === "config"); if (!c) return; const v = c.data() || {};
+    if (v.title) { document.title = v.title; const h = document.getElementById("hubTitle"); if (h) h.textContent = v.title; }
+    if (v.areaNames) { for (const [k, n] of Object.entries(v.areaNames)) { if (AREAS[k] && n) AREAS[k] = {...AREAS[k], name: n}; } }
+    render(); }, () => {});
+  db.collection("projects").onSnapshot(s => { projects = s.docs.map(d => ({id:d.id, ...d.data()})); render(); }, () => {});
+})();
+</script>

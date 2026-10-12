@@ -1,0 +1,42 @@
+# 待办库用法约定（模板）
+
+安装时把下面「正文」整段写进待办库数据库的 `meta/conventions` 文档的 `text` 字段，把〈尖括号〉换成问卷结果。以后任何 agent 改待办库前都要先读它。
+
+---
+
+## 正文
+
+〈称呼〉的待办库是「要做什么、什么时候做」的唯一来源。日历、定时消息都以这里为准。关于〈称呼〉是谁、喜欢什么，写进记忆，不写进这里。同一件事只放在一个地方。缺了什么就问〈称呼〉，不要猜。
+
+【collections】items（事项）、routines（生活循环）、projects（项目）、meta（config 和本说明）。写已有文档时一律带 if_version；冲突了就重读再合并，不覆盖主人自己的改动。
+
+【items 字段】title、area、kind、status（todo / done / someday）、due（YYYY-MM-DD）、time（HH:MM）、fixed、approx、daily、mins、note、created、doneAt、project、step、routine、img（asset id）。
+
+【时间三种写法】
+- fixed:true → 🔒 约好的固定时间，不能挪（预约、订位、航班）。
+- approx:true → 显示成「~14:00」，大概这个时候，用在没有准点但想按顺序排的事（吃饭、出门玩）。
+- 只有 time → 小秘书排的，可以挪。
+- 没有 time → 只排日子，哪天有空就做。弹性的事默认这样。
+
+【kind】task 要做；buy 要买（显示在「要买的」）；idea 点子（显示在「以后再说」）；fun 闲了玩（没日期时显示在「闲了玩」，area 为 partner 的归到和另一半一起玩）；life 吃饭睡觉这类维持生活的日常。
+
+【收件箱】只放 kind=task、没有 due、不属于项目的事。其他没日期的事各回各的标签。
+
+【areas】work 工作；partner 另一半；me 自己；health 健康；home 家；pet 宠物；money 钱；project 项目；hobby 爱好；people 朋友家人；misc 杂项。显示名在 meta/config.areaNames 里改，key 不能改。
+
+【projects】stage：idea（点子池）/ doing（进行中，最好不超过 3 个）/ paused / done。字段：why、eta（预计多久、何时见成果）、started、lastMoved。步骤是 items，带 project 和 step 字段，只在「项目」页出现；前一步没做完，后一步显示「等前一步做完」。
+
+【routines】everyDays 周期；last 上次做的日期；bookLead 要提前几天预约；booked 已约好的日期；snooze 推迟到某天再提醒；mins 每次大约多久。某天已经排了的循环，建一条 item 并设 routine=<循环 id>：本周页就不会重复提醒，勾掉这条 item 会自动更新循环的 last。预约好的事建成 fixed 的 item。
+
+【排日程】
+- 工作日白天默认上班（〈上班日〉去公司），私事排在下班后（大约〈到家时间〉之后）。
+- 满不满按时长算，不按件数：工作日下班后超过约 2.5 小时、周末超过约 5 小时算满。没写 mins 的按 15 分钟算，所以尽量给每件事填 mins。
+- kind=fun 和 kind=life 排进日子里也不算进满不满；为玩做的准备（出门、开车）照算。
+- 固定事项前留够缓冲；出门前至少留 20 分钟准备。
+- 〈主人不喜欢的安排，比如：早上 9 点前不排事 / 一天别排太满〉
+
+【每天都有的日常】起床洗漱、睡前洗漱这类 kind=life + daily:true + approx 时间的事。daily 的只在「今天」那一格显示，未来几天不显示，预告时也不念。
+
+【每晚预告第二天】排得远的日子可以只有日期；每晚预告第二天时，把那天每件事补上时间（不确定的用 approx「~」），让一天按时间顺序读下来。
+
+【不能做】不替〈称呼〉下单、预约、付款、发消息，除非他每次都明确同意。家人之间的敏感事不写进待办库。
