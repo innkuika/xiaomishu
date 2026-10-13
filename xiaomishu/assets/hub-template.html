@@ -123,15 +123,23 @@ li.item:first-child{border-top:0}
 li.done .chk{background:var(--accent);border-color:var(--accent)}
 li.done .chk::after{border-color:var(--paper)}
 li.done .t{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint)}
-.t{min-width:0;overflow-wrap:anywhere;cursor:pointer}
-.t:hover{color:var(--accent)}
-@media (hover:hover){
-  .t::after{content:"";display:inline-block;width:13px;height:13px;margin-left:8px;vertical-align:-1px;opacity:0;transition:opacity .12s;background:var(--faint);
-    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2l-3 .9.9-3z' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
-            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2l-3 .9.9-3z' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
-  li.item:hover > div > .t::after{opacity:.8}
-  li.item:hover > div > .t:hover::after{background:var(--accent)}
-}
+.t{min-width:0;overflow-wrap:anywhere}
+/* 点一行 = 展开/收起备注；有备注的行标题后面带一个小三角 */
+.body[data-act="note"]{cursor:pointer}
+.body[data-act="note"]:hover .t{color:var(--accent)}
+.t[role="button"]{border-radius:6px}
+.nh{display:inline-block;margin-left:6px;font-size:11px;color:var(--faint);transition:transform .15s;vertical-align:1px}
+.t[aria-expanded="true"] .nh{transform:rotate(90deg);color:var(--accent)}
+.pen{width:32px;height:32px;margin:-5px -6px -5px 0;border:0;background:transparent;border-radius:9px;color:var(--faint);padding:0;font-size:16px;line-height:1;display:inline-grid;place-items:center;flex:none}
+.pen:hover,.pen[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
+/* 跳过：没做、也不欠着。灰掉，不划线（和做完区分开），带一个「跳过」小签 */
+li.skipped .t{color:var(--faint)}
+li.skipped .chk{border-color:var(--line);background:var(--paper-2)}
+li.skipped .chk::after{left:4px;top:8px;width:9px;height:0;border-width:0 0 1.5px 0;border-color:var(--faint);transform:none}
+li.skipped .tm{color:var(--faint);border-color:var(--faint)}
+.skipchip{font-size:11.5px;color:var(--faint);border:1px dashed var(--faint);border-radius:6px;padding:0 6px;line-height:1.55;white-space:nowrap}
+.foldDone .sk{color:var(--faint);font-size:12.5px}
+.foldDone .fk.skf{background:var(--paper-2);color:var(--faint);border:1px dashed var(--line)}
 .tm{display:inline-block;font-family:var(--round);font-weight:500;font-size:13.5px;color:var(--muted);margin-right:8px;font-variant-numeric:tabular-nums}
 .tm.approx{color:var(--faint)}
 .tm.fixed{color:var(--seal);border:1.5px solid var(--seal);border-radius:6px;padding:0 5px;line-height:1.45;font-weight:700}
@@ -162,9 +170,6 @@ button.chip.go:active{transform:scale(.97)}
 .hl{background:var(--accent-soft)!important}
 .hlCard{box-shadow:0 0 0 3px var(--accent-soft)!important}
 .adot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);vertical-align:3px;margin-right:7px}
-.ntog{border:0;background:transparent;padding:2px 4px;margin-top:1px;color:var(--faint);border-radius:8px;line-height:0}
-.ntog svg{width:18px;height:18px}
-.ntog:hover,.ntog[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft)}
 .day .note{background:var(--paper-2);border-radius:10px;padding:6px 10px;margin-top:6px}
 /* ⓘ popover */
 .hdrBtns{display:flex;gap:8px;align-items:center;flex:none}
@@ -281,7 +286,9 @@ li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-co
             <div class="r"><span class="chip pj">某个项目 · 第 2 步</span><span>属于哪个项目、第几步</span></div>
             <div class="r"><span class="chip pj wait">第 3 步 · 等上一步</span><span>前一步还没做完，也能先勾掉</span></div>
             <div class="r"><span class="ric" style="color:var(--accent);font-weight:700;font-size:15px;padding-left:4px">↻</span><span>生活循环，点「今天做了」记一次</span></div>
-            <div class="r"><span class="ntog" style="color:var(--faint)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 3.5h6l3 3V16a.5.5 0 0 1-.5.5h-8.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" stroke-linejoin="round"/><path d="M12 3.5V6.5h3M8 10h5M8 13h3.5"/></svg></span><span>有备注，点开看</span></div>
+            <div class="r"><span style="color:var(--faint);font-size:12px;padding-left:6px">▸</span><span>有备注，点这一行展开</span></div>
+            <div class="r"><span class="pen" style="margin:0;width:24px;height:24px;color:var(--muted)">✎</span><span>改名字、日子、分类</span></div>
+            <div class="r"><span class="skipchip">跳过</span><span>忘了做/没做，不算欠着</span></div>
           </div></div>
         <button type="button" id="findBtn" class="toolsBtn" aria-expanded="false" aria-controls="findBody" aria-label="找一件事"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 13.5 13.5"/></svg><span class="lbl">找</span></button>
         <button type="button" id="addBtn" class="toolsBtn" aria-expanded="false" aria-controls="capForm" aria-label="记一件"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span class="lbl">记一件</span></button>
@@ -316,7 +323,7 @@ li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-co
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.0";
+const TEMPLATE_VERSION = "0.2.1";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -351,15 +358,16 @@ let pendBump = null, pendBack = null;   // 等数据回来、重画之后再播�
 function afterRender(){
   if (reduceMotion()) { pendBump = pendBack = null; return; }
   if (pendBump){ const f = document.querySelector(`.foldDone[data-fold="${pendBump.d}"]`);
-    if (f && f.querySelector("b").textContent === String(pendBump.n)){
-      if (pendBump.n === 1) expandEl(f.parentElement, 260, 6); else { bump(f.querySelector("b")); bump(f.querySelector(".fk")); }
+    const fb = f && f.querySelector("b.dn");
+    if (fb && fb.textContent === String(pendBump.n)){
+      if (pendBump.n === 1 && !f.querySelector(".sk")) expandEl(f.parentElement, 260, 6); else { bump(fb); bump(f.querySelector(".fk")); }
       const nl = f.parentElement.querySelector(`.doneList li[data-id="${pendBump.id}"]`); if (nl) expandEl(nl, 300, -8);
       pendBump = null; } }
   if (pendBack){ const el = document.querySelector(`.day > ul.items > li[data-id="${pendBack}"]`);
     if (el){ expandEl(el, 320, 8, true); pendBack = null; } }
 }
 // 点项目小标签：切到「项目」页，展开那个项目，滚过去，项目卡片和那一步各闪一下浅蓝
-let restOpen = false;
+let archiveOpen = false;   // 「归档」默认收起
 function pulse(el, isCard){ if (!el) return;
   if (reduceMotion()){ const c = isCard ? "hlCard" : "hl"; el.classList.add(c); setTimeout(()=>el.classList.remove(c), 1200); return; }
   el.animate(isCard ? [{boxShadow:"0 0 0 0 transparent"},{boxShadow:"0 0 0 3px var(--accent-soft)", offset:.2},{boxShadow:"0 0 0 0 transparent"}]
@@ -439,7 +447,7 @@ async function goProjectSeq(pid, iid){
     return {det, card: det.closest(".box.proj") || det.closest("li.item") || det, row: iid ? det.querySelector(`li.item[data-id="${iid}"]`) : null}; };
   const prep = () => { areaFilter = null; openId = null;
     if (q){ q = ""; $("#search").value = ""; $("#findBody").hidden = true; $("#findBtn").setAttribute("aria-expanded","false"); }
-    if (p.stage==="paused" || p.stage==="done") restOpen = true;
+    if (p.stage==="done") archiveOpen = true;
     openProjs.add(pid); };
   // 在屏幕外按「展开后」的样子量好那一步最终的位置，再把项目收回到只露标题，等滑进来后再展开
   const measure = () => { if (rm) return {}; const f = find(); if (!f.det) return {};
@@ -481,10 +489,12 @@ const byTime = (a,b) => (a.time||"99")<(b.time||"99")?-1:(a.time||"99")>(b.time|
 function stamp(a){ if(!a||!AREAS[a]) return ""; return `<span class="stamp ar" style="--c:var(${AREAS[a].c})"><i></i><span>${AREAS[a].name}</span></span>`; }
 const SEAL = `<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><rect x="2.5" y="5.2" width="7" height="5.3" rx="1.3" fill="currentColor"/><path d="M4.2 5.2V4a1.8 1.8 0 0 1 3.6 0v1.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
 
-const open = () => items.filter(i => i.status !== "done");
+// 状态：todo / done / someday / skipped（跳过：忘了做或没做，不算做完，也不算欠着，不往后滚）
+const isClosed = i => i.status==="done" || i.status==="skipped";
+const open = () => items.filter(i => !isClosed(i));
 function routineNext(r){ return r.last ? addDays(r.last, r.everyDays||30) : null; }
 const snoozed = r => !!(r.snooze && r.snooze > todayStr());
-const plannedOf = r => items.filter(i=>i.routine===r.id && i.status!=="done" && i.due).sort((a,b)=>a.due<b.due?-1:1)[0] || null;
+const plannedOf = r => items.filter(i=>i.routine===r.id && !isClosed(i) && i.due).sort((a,b)=>a.due<b.due?-1:1)[0] || null;
 function rState(r){ const nx=routineNext(r), t=todayStr();
   if (r.booked) return {s:"booked", nx};
   if (!nx) return {s:"none", nx};
@@ -493,14 +503,14 @@ function rState(r){ const nx=routineNext(r), t=todayStr();
   return {s:"wait", nx}; }
 const projOf = i => i.project ? projects.find(p=>p.id===i.project) : null;
 function projSteps(pid){ return items.filter(i=>i.project===pid).sort((a,b)=>(a.step||99)-(b.step||99)); }
-function projInfo(p){ const st=projSteps(p.id), done=st.filter(i=>i.status==="done"), next=st.find(i=>i.status!=="done");
+function projInfo(p){ const st=projSteps(p.id), done=st.filter(i=>i.status==="done"), next=st.find(i=>!isClosed(i));
   const moved=[p.lastMoved, ...done.map(i=>i.doneAt)].filter(Boolean).sort().pop()||null; return {st,done,next,moved}; }
-function isLocked(i){ if(!i.project || i.status==="done") return false; const p=projOf(i); if(!p) return false; const nx=projInfo(p).next; return nx && nx.id!==i.id && (nx.step||99)<(i.step||99); }
+function isLocked(i){ if(!i.project || isClosed(i)) return false; const p=projOf(i); if(!p) return false; const nx=projInfo(p).next; return nx && nx.id!==i.id && (nx.step||99)<(i.step||99); }
 const timeHtml = i => i.time ? (i.fixed ? `<span class="tm fixed" title="约好的固定时间">${esc(i.time)}</span>` : i.approx ? `<span class="tm approx">~${esc(i.time)}</span>` : `<span class="tm">${esc(i.time)}</span>`) : "";
 
 function itemRow(i){
   const t = todayStr();
-  const late = i.due && i.status!=="done" && i.due < t;
+  const late = i.due && !isClosed(i) && i.status!=="someday" && i.due < t;
   // 本周页只留最要紧的：时间、标题、项目第几步、过期；分类缩成标题前一个小色点，备注默认收起
   const wk = tab==="week" && !q;
   const metaBits = wk ? [] : [stamp(i.area)];
@@ -510,14 +520,17 @@ function itemRow(i){
   if (!wk && i.kind && i.kind!=="task") metaBits.push(`<span class="kind">${KINDS[i.kind]}</span>`);
   if (i.due && !wk) metaBits.push(`<span class="due ${late?"late":""}">${fmt(i.due)}${late?" · 过期了":""}</span>`);
   if (i.due && wk && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
-  const meta = metaBits.filter(Boolean).join("");
   const adot = wk && AREAS[i.area] ? `<span class="adot" style="--c:var(${AREAS[i.area].c})" title="${AREAS[i.area].name}"></span>` : "";
-  const nOpen = openNotes.has(i.id);
-  const ntog = i.note && openId!==i.id ? `<button class="ntog" data-act="note" aria-expanded="${nOpen}" aria-label="${nOpen?"收起备注":"看备注"}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 3.5h6l3 3V16a.5.5 0 0 1-.5.5h-8.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" stroke-linejoin="round"/><path d="M12 3.5V6.5h3M8 10h5M8 13h3.5"/></svg></button>` : `<span></span>`;
-  let html = `<li class="item ${i.status==="done"?"done":""} ${locked?"locked":""}" data-id="${i.id}">
-    <button class="chk" data-act="toggle" aria-label="${i.status==="done"?"标记为没做":"标记为做完"}"></button>
-    <div style="min-width:0"><div class="t" data-act="edit">${adot}${timeHtml(i)}${esc(i.title)}${i.mins&&!wk?`<span class="dur">${durTxt(i.mins)}</span>`:""}</div>${meta?`<div class="meta">${meta}</div>`:""}${i.note && openId!==i.id && nOpen?`<div class="note">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
-    ${ntog}`;
+  const sk = i.status==="skipped", dn = i.status==="done";
+  if (sk) metaBits.unshift(`<span class="skipchip">跳过</span>`);
+  const meta = metaBits.filter(Boolean).join("");
+  // 点这一行（除了勾选框、小标签、✎）= 展开/收起备注；编辑在右边的 ✎
+  const hasNote = !!i.note && openId!==i.id, nOpen = hasNote && openNotes.has(i.id), nid = "n-"+i.id;
+  const tAttrs = hasNote ? ` role="button" tabindex="0" aria-expanded="${nOpen}" ${nOpen?` aria-controls="${nid}"`:""} title="${nOpen?"收起备注":"看备注"}"` : "";
+  let html = `<li class="item ${dn?"done":""} ${sk?"skipped":""} ${locked?"locked":""}" data-id="${i.id}">
+    <button class="chk" data-act="toggle" aria-label="${dn?"标记为没做":"标记为做完"}"></button>
+    <div class="body" style="min-width:0"${hasNote?` data-act="note"`:""}><div class="t"${tAttrs}>${adot}${timeHtml(i)}${esc(i.title)}${i.mins&&!wk?`<span class="dur">${durTxt(i.mins)}</span>`:""}${hasNote?`<span class="nh" aria-hidden="true">▸</span>`:""}</div>${meta?`<div class="meta">${meta}</div>`:""}${nOpen?`<div class="note" id="${nid}">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
+    <button type="button" class="pen" data-act="edit" aria-label="编辑" aria-pressed="${openId===i.id}">✎</button>`;
   if (openId === i.id) html += editor(i);
   return html + `</li>`;
 }
@@ -539,6 +552,7 @@ function editor(i){
     <div class="row">
       <button class="btn primary" data-act="save">保存</button>
       <button class="btn" data-act="later">${i.status==="someday"?"放回待办":"以后再说"}</button>
+      <button class="btn" data-act="skip">${i.status==="skipped"?"不算跳过，放回待办":"跳过（没做，不欠着）"}</button>
       <button class="btn" data-act="close">收起</button>
       <button class="btn ghost danger" data-act="del">删掉</button>
     </div></div>`;
@@ -560,8 +574,10 @@ function renderWeek(){
   for (let k=0;k<7;k++){
     const d = addDays(t,k);
     // 没做完的按排的日子（due）；做完的放进「真正做完那天」（doneAt，和勾选时写入的 todayStr() 同一种本地日期），老数据没有 doneAt 就退回 due
-    const liveIt = items.filter(i=>i.due===d && i.status!=="done" && i.status!=="someday" && (!i.daily || k===0)).sort(byTime);
+    const liveIt = items.filter(i=>i.due===d && !isClosed(i) && i.status!=="someday" && (!i.daily || k===0)).sort(byTime);
     const doneIt = items.filter(i=>i.status==="done" && (i.doneAt || i.due)===d).sort(byTime);
+    // 跳过的留在排的那天，和做完的一起收在底部折叠里（灰掉），不算进做完/总数
+    const skipIt = items.filter(i=>i.status==="skipped" && i.due===d).sort(byTime);
     const rs = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false;
       if (st.s==="book") return snoozed(r) ? d===r.snooze : k===0;
       if (st.s==="due") return k===0 ? st.nx<=t : st.nx===d;
@@ -577,8 +593,9 @@ function renderWeek(){
       <div class="dayhead"><span class="dd">${mm}/${dd}</span><span class="wk">${WD[wd]}</span>${k<2?`<span class="rel">${k===0?"今天":"明天"}</span>`:""}${loadTxt}</div>`;
     if (liveIt.length) h += `<ul class="items">${liveIt.map(itemRow).join("")}</ul>`;
     if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
-    if (doneIt.length){ const fo = foldOpen.has(d);
-      h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk" aria-hidden="true">✓</span><span>已完成<b>${doneIt.length}</b>件</span><span class="car" aria-hidden="true">▸</span></button>${fo?`<ul class="items doneList">${doneIt.map(itemRow).join("")}</ul>`:""}</div>`; }
+    if (doneIt.length || skipIt.length){ const fo = foldOpen.has(d), sn = skipIt.length;
+      const lbl = (doneIt.length ? `<span>已完成<b class="dn">${doneIt.length}</b>件</span>` : "") + (sn ? `<span class="sk">${doneIt.length?"· ":""}跳过 ${sn} 件</span>` : "");
+      h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk ${doneIt.length?"":"skf"}" aria-hidden="true">${doneIt.length?"✓":"–"}</span>${lbl}<span class="car" aria-hidden="true">▸</span></button>${fo?`<ul class="items doneList">${[...doneIt, ...skipIt].map(itemRow).join("")}</ul>`:""}</div>`; }
     h += `</div>`;
   }
   const inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
@@ -604,12 +621,13 @@ function projCard(p){
 }
 function renderProjects(){
   const by = s => projects.filter(p=>(p.stage||"idea")===s);
-  const doing = by("doing"), idea = by("idea"), rest = [...by("paused"), ...by("done")];
+  const doing = by("doing"), idea = by("idea"), paused = by("paused"), done = by("done");
   return `<div class="status">进行中的最好不超过 3 个。做项目的时间在「本周」里排成时间块。</div>`
     + (doing.length ? doing.map(projCard).join("") : `<div class="empty">还没有进行中的项目。</div>`)
     + `<div class="box"><h2>点子池 <span class="count">${idea.length}</span></h2>${idea.length?`<ul class="items">${idea.map(p=>`<li class="item"><span class="dot" style="background:var(--a-project);margin-top:8px"></span><div style="min-width:0"><div class="t">${esc(p.title)}</div><div class="meta">${stamp(p.area)}</div>${p.eta?`<div class="status">预计：${esc(p.eta)}</div>`:""}${p.why?`<div class="note">${esc(p.why)}</div>`:""}${(()=>{ const st=projSteps(p.id); return `<details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>${st.length?`步骤（${st.length}）`:"加步骤"}</summary>${st.length?`<ul class="items">${st.map(itemRow).join("")}</ul>`:""}<form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></details>`; })()}</div><span data-pid="${p.id}"><button class="btn sm" data-pact="doing">开工</button></span></li>`).join("")}</ul>`:`<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
       <form class="capture addidea" style="margin-top:8px"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
-    + (rest.length ? `<details class="box" data-rest ${restOpen?"open":""}><summary>先放着 · 完成了（${rest.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${rest.map(projCard).join("")}</div></details>` : "");
+    + (paused.length ? `<div class="box"><h2>先放着 <span class="count">${paused.length}</span></h2><div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">${paused.map(projCard).join("")}</div></div>` : "")
+    + (done.length ? `<details class="box" data-archive ${archiveOpen?"open":""}><summary>归档 · 完成了的项目（${done.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${done.map(projCard).join("")}</div></details>` : "");
 }
 function areaState(k){
   const t=todayStr(), op=open().filter(i=>i.area===k && i.status!=="someday" && (i.kind||"task")!=="idea");
@@ -621,7 +639,7 @@ function areaState(k){
 function renderAreas(){
   if (areaFilter){
     const k = areaFilter;
-    const list = items.filter(i=>i.area===k && i.status!=="done").sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1);
+    const list = items.filter(i=>i.area===k && !isClosed(i)).sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1);
     const rs = routines.filter(r=>r.area===k), ps = projects.filter(p=>p.area===k && p.stage!=="done");
     return `<button class="btn" data-act="back" style="align-self:flex-start">← 全部分类</button>
       <div class="box"><h2><span class="dot" style="background:var(${AREAS[k].c})"></span>${AREAS[k].name}</h2>
@@ -651,7 +669,7 @@ function renderFun(){
     + listBox("自己玩", f.filter(i=>i.area!=="partner"), "还没有。");
 }
 function renderLater(){
-  const some = items.filter(i=>i.status==="someday" || i.kind==="idea" && i.status!=="done");
+  const some = items.filter(i=>i.status==="someday" || i.kind==="idea" && !isClosed(i));
   const done = items.filter(i=>i.status==="done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1).slice(0,15);
   return listBox("以后再说 · 小想法", some, "没有搁置的事。") + listBox("最近做完的", done, "还没有做完的记录。");
 }
@@ -674,6 +692,7 @@ function renderRoutines(){
 let q = "";
 function whereIs(i){ const t=todayStr(); const pj=projOf(i);
   if (i.status==="done") return `做完了${i.doneAt?`（${fmt(i.doneAt)}）`:""}`;
+  if (i.status==="skipped") return `跳过了${i.due?`（${fmt(i.due)}）`:""}`;
   if (i.status==="someday") return "在「以后再说」";
   if (pj) return `在「项目」· ${pj.title} 第 ${i.step||"?"} 步${i.due?` · 排在 ${fmt(i.due)}`:""}`;
   if (i.kind==="buy") return `在「要买的」${i.due?` · ${fmt(i.due)}`:""}`;
@@ -748,11 +767,15 @@ document.addEventListener("click", async ev => {
     return; }
   const pb = ev.target.closest("[data-pact]");
   if (pb && db){ const host = pb.closest("[data-pid]"); const pr = host && projects.find(x=>x.id===host.dataset.pid); if(!pr) return;
-    const stg = pb.dataset.pact, v = {stage:stg}; if (stg==="doing" && !pr.started) v.started = todayStr(); if (stg==="done") v.doneAt = todayStr();
+    const stg = pb.dataset.pact, v = {stage:stg}; if (stg==="doing" && !pr.started) v.started = todayStr(); if (stg==="done"){ v.doneAt = todayStr(); archiveOpen = true; }
     await write(db.doc("projects/"+pr.id), ref=>ref.update(v), stg==="doing"?"开工了":stg==="done"?"项目完成":"先放着了"); return; }
   const a = ev.target.closest("[data-act]"); if (!a) return;
+  // 点备注区里的链接/选中文字时不收起
+  if (a.dataset.act==="note" && (ev.target.closest("a") || String(getSelection()||"").length)) return;
   if (a.dataset.act==="back"){ areaFilter=null; render(); return; }
   const li = a.closest("li.item"); const id = li && li.dataset.id; const it = items.find(x=>x.id===id);
+  if (it && a.dataset.act==="note"){ openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render();
+    const t = document.querySelector(`li.item[data-id="${CSS.escape(id)}"] .t[role="button"]`); if (t && ev.detail===0) t.focus({preventScroll:true}); return; }
   if (!it || !db) return;
   const ref = db.doc("items/"+id);
   switch(a.dataset.act){
@@ -771,9 +794,9 @@ document.addEventListener("click", async ev => {
       if (it.routine && !wasDone){ const r = routines.find(x=>x.id===it.routine); if (r) await write(db.doc("routines/"+r.id), x=>x.update({last: (it.due && it.due<=todayStr()) ? it.due : todayStr(), booked:null}), null); }
       break; }
     case "edit": openId = openId===id?null:id; render(); break;
+    case "skip": openId=null; await write(ref, r=>r.update(it.status==="skipped"?{status:"todo"}:{status:"skipped",doneAt:null}), it.status==="skipped"?"放回待办了":"跳过了，不算欠着"); break;
     case "zoom": a.classList.toggle("big"); break;
     case "rmimg": await write(ref, r=>r.update({img:null}), "图片去掉了"); break;
-    case "note": openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); break;
     case "close": openId=null; render(); break;
     case "later": openId=null; await write(ref, r=>r.update({status: it.status==="someday"?"todo":"someday"}), it.status==="someday"?"放回待办了":"放到以后再说了"); break;
     case "del": openId=null; await write(ref, r=>r.delete(), "删掉了"); break;
@@ -796,7 +819,7 @@ document.addEventListener("submit", async ev => {
     await write(db.collection("projects"), c=>c.add({title:v, stage:"idea", area:"project", why:"", created:todayStr()}), "放进点子池了");
   }
 });
-document.addEventListener("toggle", ev => { const d = ev.target; if (d.tagName==="DETAILS" && d.hasAttribute("data-rest")) restOpen = d.open; if (d.tagName==="DETAILS" && d.dataset.pid){ d.open ? openProjs.add(d.dataset.pid) : openProjs.delete(d.dataset.pid); } }, true);
+document.addEventListener("toggle", ev => { const d = ev.target; if (d.tagName==="DETAILS" && d.hasAttribute("data-archive")) archiveOpen = d.open; if (d.tagName==="DETAILS" && d.dataset.pid){ d.open ? openProjs.add(d.dataset.pid) : openProjs.delete(d.dataset.pid); } }, true);
 $("#capForm").addEventListener("submit", async ev => {
   ev.preventDefault();
   const v = $("#capInput").value.trim(); if (!v || !db) return;
@@ -807,6 +830,9 @@ document.addEventListener("click", ev => {
   document.querySelectorAll("details.pmenu[open]").forEach(d => { if (!d.contains(ev.target)) d.open = false; });
 }, true);
 document.addEventListener("keydown", ev => { if (ev.key === "Escape") document.querySelectorAll("details.pmenu[open]").forEach(d => d.open = false); });
+// 键盘：有备注的行标题是 role=button，Enter / 空格 展开收起
+document.addEventListener("keydown", ev => { const t = ev.target;
+  if ((ev.key==="Enter" || ev.key===" ") && t.matches && t.matches('.t[role="button"]')){ ev.preventDefault(); t.click(); } });
 $("#search").addEventListener("input", e => { q = e.target.value.trim(); render(); });
 const setInfo = (on, refocus) => { const was = !$("#infoPop").hidden;
   $("#infoPop").hidden = !on; $("#infoBackdrop").hidden = !on; $("#infoBtn").setAttribute("aria-expanded", String(on));
@@ -836,6 +862,8 @@ function demoDb(){
   put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
   const pj = put("projects", {title:"整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
+  put("projects", {title:"学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
+  put("projects", {title:"换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
   [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
    {title:"挑一盏台灯", project:pj, step:2, due:t, area:"home", mins:30},
    {title:"把旧书捐掉", project:pj, step:3, due:d(2), area:"home"},
@@ -843,6 +871,8 @@ function demoDb(){
    {title:"写周报", due:t, area:"work", mins:30},
    {title:"晚饭", due:t, time:"19:00", approx:true, kind:"life", area:"me", note:"冰箱里有番茄和鸡蛋"},
    {title:"回复房东邮件", due:t, status:"done", doneAt:t, area:"home"},
+   {title:"早上拉伸 10 分钟", due:t, time:"08:00", approx:true, kind:"life", area:"health", status:"skipped"},
+   {title:"晚上记账", due:d(-1), time:"21:30", approx:true, kind:"life", area:"money", status:"skipped"},
    {title:"交水电费", due:d(-1), area:"money"},
    {title:"和另一半去看电影", due:d(1), time:"20:00", approx:true, kind:"fun", area:"partner"},
    {title:"买猫砂", kind:"buy", area:"pet"},

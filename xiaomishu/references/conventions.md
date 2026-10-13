@@ -10,7 +10,7 @@
 
 【collections】items（事项）、routines（生活循环）、projects（项目）、meta（config 和本说明）。写已有文档时一律带 if_version；冲突了就重读再合并，不覆盖主人自己的改动。
 
-【items 字段】title、area、kind、status（todo / done / someday）、due（YYYY-MM-DD）、time（HH:MM）、fixed、approx、daily、mins、note、created、doneAt、project、step、routine、img（asset id）。
+【items 字段】title、area、kind、status（todo / done / someday / skipped）、due（YYYY-MM-DD）、time（HH:MM）、fixed、approx、daily、mins、note、created、doneAt、project、step、routine、img（asset id）。
 
 【时间三种写法】
 - fixed:true → 🔒 约好的固定时间，不能挪（预约、订位、航班）。
@@ -50,6 +50,10 @@
 【记和做分开】主人说「先记着」「回头弄」，当场写进待办库（没日子就进收件箱），做可以晚点。不要只记在对话里等以后再写。
 
 【勾选】没做的就不勾。主人没说做完、也看不出做完了，就保持没做，晚上问一句。做完的写 doneAt=实际完成那天（不是原来排的 due）；本周页「已完成」按 doneAt 归到那一天，补勾昨天的事也要写昨天的日期。
+
+【跳过】忘了做、没做、也不打算补的事（多半是每天的日常）标 status=skipped：不算做完也不算欠着，不往后挪。晚上过日程时，当天没勾的日常先问一句，主人说忘了就标 skipped，不替他勾成 done。某条老被跳过，就主动提议换时间或换办法。
+
+【做了一半的事】几步会连着做完的写成一条；分不同时段做的，一开始就拆成两条。已经写成一条又只做了一半，就把做完的勾掉，剩下的另起一条。
 
 【项目推进】每晚扫一遍 stage=doing 的项目：上一步做完了、下一步还没日子的，给下一步排上一天（或问主人排哪天）。别让项目停在「下一步：还没排日子」。
 
