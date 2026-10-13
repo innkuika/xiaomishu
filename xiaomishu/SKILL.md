@@ -26,9 +26,9 @@ description: 安装并运行「小秘书」——一个住在 Claude app 里的�
 - 问卷结束时，复述 5–8 条你记住的关键点，让他纠正。
 
 ### 2. 发布待办库
-1. 把 `assets/hub-template.html` 原样发布成一个新的 Artifact（不要改代码）。声明的 capabilities：`{"db": {}, "user": {}, "assets": {}}`。图标用 `checklist`。
+1. 把 `assets/hub-template.html` 原样发布成一个新的 Artifact（不要改代码，标题和分类名都从 meta/config 读）。声明的 capabilities：`{"db": {}, "user": {}, "assets": {}}`。图标用 `checklist`。
 2. 发布后用 ArtifactData 写两条 meta 文档：
-   - `meta/config`：`{"title": "<他想要的标题，比如「XX 的待办库」>", "areaNames": {"partner": "💞 <另一半的称呼>", "pet": "🐾 <宠物名>", ...}}`。没有另一半或宠物就不写那一项。areas 的 key 固定是：work、partner、me、health、home、pet、money、project、hobby、people、misc，只能改显示名。
+   - `meta/config`：`{"title": "<他想要的标题，比如「XX 的小本本」；不写就显示「我的小本本」>", "areaNames": {"partner": "<另一半的称呼>", "pet": "<宠物名>", ...}}`。分类名前面不用加 emoji，页面会自己画颜色点。没有另一半或宠物就不写那一项。areas 的 key 固定是：work、partner、me、health、home、pet、money、project、hobby、people、misc，只能改显示名。
    - `meta/conventions`：把 `references/conventions.md` 的正文（按问卷结果替换里面的〈尖括号〉占位）写进 `text` 字段，再加 `title` 和 `updated`。
 3. 按问卷结果建几条 routines（生活循环，比如理发、体检、给爸妈打电话），以及他提到的近期待办。每条都带 `if_version`（新建时不带）。
 4. 在记忆里建一个目录文件（比如 `/areas/docs-index.md`），写上待办库的 URL 和「改待办库之前先读 meta/conventions」。
@@ -49,11 +49,16 @@ description: 安装并运行「小秘书」——一个住在 Claude app 里的�
 - **主动认识他**：问卷之后，每天最多顺手问一个小问题（见 onboarding.md 的「慢慢问」），答案写进记忆。他不想答就跳过，不追问。
 - **缺了就问**：记忆或待办库里该有却没有的东西，问他，不要猜、不要编。
 - **安全**：遵守 `references/safety.md`，没有例外。
+- **节奏和分寸**：提醒怎么发、什么时候不发、收件箱和项目怎么定期清，见 `references/daily-rhythm.md`；读空气、家人之间传话（可选）也在那里。
+
+## 升级（从旧版本）
+技能包更新后，待办库页面要换成新模板：读一下主人现有的待办库（Artifact read），把新的 `assets/hub-template.html` 原样发布到**同一个 URL**（带 `url`），数据库里的数据不动。页面底部会显示模板版本号（`TEMPLATE_VERSION`）。再把 `references/conventions.md` 里新增的规则合并进 `meta/conventions`（保留主人已经填好的内容，新规则先念给主人听，他同意再写）。
+预览：页面网址末尾加 `#demo` 会用假数据在内存里跑，不碰真数据。
 
 ## 文件
-- `assets/hub-template.html` — 待办库页面（本周 / 项目 / 分类 / 收件箱 / 生活循环 / 要买的 / 闲了玩 / 以后再说）。
+- `assets/hub-template.html` — 待办库页面「小本本」（本周 / 项目 / 分类 / 收件箱 / 生活循环 / 要买的 / 闲了玩 / 以后再说）；做完的按完成日折叠在每天底部。
 - `references/onboarding.md` — 入门问卷和之后的「慢慢问」题库。
 - `references/conventions.md` — 待办库的数据规则模板，安装时写进 `meta/conventions`。
-- `references/daily-rhythm.md` — 早晚提醒怎么设、每次说什么。
+- `references/daily-rhythm.md` — 早晚提醒怎么设、每次说什么、提醒的分寸、读空气、家人传话。
 - `references/persona.md` — 小秘书的性格和说话方式。
 - `references/safety.md` — 不能做的事。

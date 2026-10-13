@@ -1,136 +1,303 @@
-<title>我的待办库</title>
+<title>我的小本本</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
-/* Layout: one calm column — a week strip on top, then tabs; each life area is a "stamp" colour, like hanko on a ledger. */
+/* Layout: one calm column like a weekly planner refill. Each day is a page row: a rounded date stamp on the left, the day's lines on the right.
+   Today's page has a faint dot grid. Blue ink on white paper; vermilion only for things fixed or overdue, like a hanko. */
 :root{
-  --bg:#F2F4F6; --paper:#FFFFFF; --ink:#1D2330; --muted:#677080; --line:#DCE1E7;
-  --accent:#2E4A7A; --accent-soft:#E3EAF5; --warn:#B4532A; --warn-soft:#F8E7DE; --ok:#2F7A55; --ok-soft:#E0F1E8;
-  --a-work:#3B5B92; --a-partner:#A0522D; --a-me:#C2417A; --a-health:#2F7A55; --a-home:#8A6A3B; --a-pet:#B0627A; --a-money:#6B6A2E; --a-project:#2A7C86; --a-hobby:#6A4F9A; --a-people:#B4532A; --a-misc:#6E6A66;
-  --display:"Zen Maru Gothic","PingFang SC","Hiragino Sans GB","Noto Sans SC",system-ui,sans-serif;
+  --bg:#EEF3F9;        /* pale sky paper behind the pages */
+  --paper:#FFFFFF;
+  --paper-2:#F6F9FC;   /* sunk fields, inputs */
+  --ink:#1F2B3D;       /* navy ink, never pure black */
+  --muted:#66748A;
+  --faint:#97A3B5;
+  --line:#DCE4EE;
+  --rule:#E7EDF4;      /* the dashed ruled lines between entries */
+  --accent:#2C5BA6;    /* 藍 indigo-blue */
+  --accent-2:#5B86C9;
+  --accent-soft:#E4EDF9;
+  --seal:#C24E36;      /* 朱 vermilion — fixed times, overdue */
+  --seal-soft:#FBEBE6;
+  --ok:#2E7A63; --ok-soft:#E1F1EB;
+  --dot:#DCE5F1;       /* dot grid */
+  --tape:#BFD3EE;      /* washi tape */
+  --shadow:0 1px 0 rgba(31,43,61,.04), 0 2px 8px rgba(44,91,166,.06);
+  --a-work:#3A5F98; --a-partner:#B0683A; --a-me:#C2577E; --a-health:#3E8468; --a-home:#8C6E46; --a-pet:#9A5F96; --a-money:#7A7A34; --a-project:#2B8094; --a-hobby:#6E5BA6; --a-people:#C0583A; --a-misc:#6F7480;
+  --round:"Zen Maru Gothic","PingFang SC","Hiragino Sans GB","Noto Sans SC",system-ui,sans-serif;
   --body:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#11141A; --paper:#1A1F28; --ink:#E5E8EE; --muted:#97A0AE; --line:#2B323E;
-  --accent:#9DB6E6; --accent-soft:#223049; --warn:#F0A07C; --warn-soft:#3A2419; --ok:#7FCFA2; --ok-soft:#173226;
-  --a-work:#8FA9DD; --a-partner:#E0A07A; --a-me:#F09AC0; --a-health:#7FCFA2; --a-home:#D2B07C; --a-pet:#E79AB2; --a-money:#C9C77A; --a-project:#7CCAD3; --a-hobby:#B9A2E6; --a-people:#F0A07C; --a-misc:#B5B0AA;
+  --bg:#0F1621; --paper:#172130; --paper-2:#1C2838; --ink:#E3E9F2; --muted:#9AA8BC; --faint:#6C7A8F; --line:#28354A; --rule:#223045;
+  --accent:#8FB3EC; --accent-2:#6E97D8; --accent-soft:#1E3150; --seal:#F0957C; --seal-soft:#3A2220; --ok:#7FCDB2; --ok-soft:#173329;
+  --dot:#223149; --tape:#2C4568; --shadow:0 1px 0 rgba(0,0,0,.2);
+  --a-work:#8FB0E6; --a-partner:#E2A47A; --a-me:#EE9DBC; --a-health:#82CDAE; --a-home:#D1B184; --a-pet:#D7A2D3; --a-money:#C9C980; --a-project:#7BCBDB; --a-hobby:#B6A6E8; --a-people:#F0A086; --a-misc:#B2B8C4;
   color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#11141A; --paper:#1A1F28; --ink:#E5E8EE; --muted:#97A0AE; --line:#2B323E;
-  --accent:#9DB6E6; --accent-soft:#223049; --warn:#F0A07C; --warn-soft:#3A2419; --ok:#7FCFA2; --ok-soft:#173226;
-  --a-work:#8FA9DD; --a-partner:#E0A07A; --a-me:#F09AC0; --a-health:#7FCFA2; --a-home:#D2B07C; --a-pet:#E79AB2; --a-money:#C9C77A; --a-project:#7CCAD3; --a-hobby:#B9A2E6; --a-people:#F0A07C; --a-misc:#B5B0AA;
+  --bg:#0F1621; --paper:#172130; --paper-2:#1C2838; --ink:#E3E9F2; --muted:#9AA8BC; --faint:#6C7A8F; --line:#28354A; --rule:#223045;
+  --accent:#8FB3EC; --accent-2:#6E97D8; --accent-soft:#1E3150; --seal:#F0957C; --seal-soft:#3A2220; --ok:#7FCDB2; --ok-soft:#173329;
+  --dot:#223149; --tape:#2C4568; --shadow:0 1px 0 rgba(0,0,0,.2);
+  --a-work:#8FB0E6; --a-partner:#E2A47A; --a-me:#EE9DBC; --a-health:#82CDAE; --a-home:#D1B184; --a-pet:#D7A2D3; --a-money:#C9C980; --a-project:#7BCBDB; --a-hobby:#B6A6E8; --a-people:#F0A086; --a-misc:#B2B8C4;
   color-scheme:dark}
+
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
-.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:18px}
-header{display:flex;flex-direction:column;gap:4px}
-h1{font-family:var(--display);font-weight:700;font-size:26px;margin:0;letter-spacing:.02em;text-wrap:balance}
-.sub{color:var(--muted);font-size:13px}
-.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:28px 72px;display:flex;flex-direction:column;gap:20px}
+button{font:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+/* ── header ── */
+header{display:flex;flex-direction:column;gap:10px}
+.titleRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{position:relative;margin:0;font-family:var(--body);font-weight:700;font-size:24px;letter-spacing:.06em;text-wrap:balance;padding-inline:2px;z-index:0}
+h1::before{content:"";position:absolute;z-index:-1;left:-8px;right:-10px;bottom:5px;height:11px;border-radius:2px;transform:rotate(-1.2deg);
+  background:repeating-linear-gradient(90deg,var(--tape) 0 10px,color-mix(in srgb,var(--tape) 70%,transparent) 10px 14px);opacity:.9}
+.toolsBtn{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--muted)}
+.toolsBtn svg{width:15px;height:15px}
+.toolsBtn[aria-expanded="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.sum{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);align-items:baseline}
+.sum b{font-family:var(--round);font-weight:700;color:var(--ink);font-size:15px;margin-right:2px}
+.sum .late b{color:var(--seal)}
+.sum .date{color:var(--ink);font-weight:500}
+
+.toolsBody{display:flex;flex-direction:column;gap:8px}
+.toolsBody:not(:has(> :not([hidden]))){display:none}
 .capture{display:flex;gap:8px}
-.capture input{flex:1;min-width:0;font:inherit;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
-.capture input:focus,select:focus,textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
-button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600}
-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
-.tabs button{white-space:nowrap;border-radius:999px;padding:6px 14px;font-size:14px}
-.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input,select,textarea{font:inherit;color:var(--ink);font-size:16px}
+.field,.capture input{font-size:16px;flex:1;min-width:0;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.field:focus,.capture input:focus,.editor :is(input,select,textarea):focus,.bookline input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.btn{border-radius:10px;border:1px solid var(--line);background:var(--paper);padding:7px 13px;font-size:14px;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--accent-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:500}
+.btn.sm{padding:3px 10px;font-size:12.5px;border-radius:8px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding-inline:6px}
+.danger{color:var(--seal)}
+
+/* ── index tabs, like the cut tabs on a planner's edge ── */
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1.5px solid var(--line);scrollbar-width:none;margin-bottom:-6px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;white-space:nowrap;border:1.5px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;background:transparent;padding:7px 14px 6px;font-size:14px;color:var(--muted);margin-bottom:-1.5px}
+.tabs button:hover{color:var(--ink)}
+.tabs{position:relative}
+.tabs button{position:relative;z-index:1}
+.tabs button[aria-selected="true"]{color:var(--accent);font-weight:500}
+/* 选中标签下面那块纸片，换标签时滑过去 */
+.tabInk{position:absolute;z-index:0;background:var(--paper);border:1.5px solid var(--line);border-bottom:0;border-radius:12px 12px 0 0;pointer-events:none;
+  transition:left .38s cubic-bezier(.45,0,.25,1),width .38s cubic-bezier(.45,0,.25,1)}
+.tabInk::after{content:"";position:absolute;left:0;right:0;bottom:-1.5px;height:2px;background:var(--paper)}
+.wrap{position:relative;overflow-x:clip}
+
 section.panel{display:flex;flex-direction:column;gap:12px}
-.day{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.dayhead b{font-family:var(--display);font-size:16px}
-.load{font-size:12px;color:var(--muted)}
-.load.full{color:var(--warn)}
-ul.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-li.item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:7px 2px;border-top:1px dashed var(--line)}
+.status{font-size:13px;color:var(--muted)}
+.empty{color:var(--faint);font-size:13.5px;padding:6px 0}
+
+/* ── cards ── */
+.box,.day{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.box{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.box h2{font-family:var(--body);font-weight:700;font-size:16px;margin:0;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+.box h2 .count{font-family:var(--round);font-weight:500;font-size:13px;color:var(--faint)}
+.box.oweBox{border-color:color-mix(in srgb,var(--seal) 35%,var(--line));background:linear-gradient(var(--seal-soft),var(--seal-soft)) top/100% 44px no-repeat,var(--paper)}
+.box.oweBox h2{color:var(--seal)}
+
+/* ── day pages ── */
+.day{display:flex;flex-direction:column;gap:2px;padding:12px 16px 10px}
+.dayhead{display:flex;align-items:center;gap:8px;padding-bottom:4px}
+.dayhead .dd{font-family:var(--round);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.dayhead .wk{font-size:13px;color:var(--muted)}
+.day.weekend .dayhead .wk{color:var(--accent)}
+.dayhead .rel{font-size:12px;font-weight:500;border-radius:999px;padding:0 9px;line-height:1.8;background:var(--accent-soft);color:var(--accent)}
+.day.today .dayhead .rel{background:var(--accent);color:var(--paper)}
+.load{margin-left:auto;font-family:var(--round);font-weight:500;font-size:14px;color:var(--faint);font-variant-numeric:tabular-nums}
+.load b{color:var(--accent);font-weight:700}
+.load.free{font-family:var(--body);font-size:12px}
+
+
+/* ── entries ── */
+ul.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li.item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:start;padding:9px 0;border-top:1px dashed var(--rule)}
 li.item:first-child{border-top:0}
-.chk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--muted);background:transparent;padding:0;margin-top:2px}
-.chk:hover{border-color:var(--ok)}
-li.done .t{text-decoration:line-through;color:var(--muted)}
-li.done .chk{background:var(--ok);border-color:var(--ok)}
-.t{min-width:0;word-break:break-word;cursor:pointer}
-.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
-.stamp{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid currentColor;line-height:1.6;white-space:nowrap}
-.due{font-size:12px;color:var(--muted)}
-.due.late{color:var(--warn);font-weight:600}
-.empty{color:var(--muted);font-size:13px;padding:4px 0}
-.tm{display:inline-block;min-width:3.2em;color:var(--accent);font-weight:500;margin-right:8px}
-.dur{font-size:12px;color:var(--muted);margin-left:8px;white-space:nowrap}
-.day.today li.item{padding:9px 2px}
-.day.today .chk{width:22px;height:22px}
-.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.area{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left}
-.area h3{margin:0;font-family:var(--display);font-size:17px;display:flex;align-items:center;gap:8px}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.pill{align-self:flex-start;font-size:12px;padding:2px 9px;border-radius:999px}
-.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.idle{background:var(--accent-soft);color:var(--accent)}
-.area .next{font-size:13px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
-.box{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
-.box h2{font-family:var(--display);font-size:17px;margin:0 0 6px}
-.editor{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:8px 0 4px}
-.editor label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
-.editor input,.editor select,.editor textarea{font:inherit;font-size:14px;padding:7px 9px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-width:0}
-.editor textarea{grid-column:1 / -1;min-height:56px;resize:vertical}
-.editor .row{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap}
-.danger{color:var(--warn)}
-.note{font-size:12px;color:var(--muted);white-space:pre-wrap}
+.chk{width:20px;height:20px;border-radius:7px;border:1.5px solid var(--accent-2);background:var(--paper);padding:0;margin-top:2px;position:relative;flex:none}
+.chk:hover{background:var(--accent-soft)}
+.chk::after{content:"";position:absolute;left:6px;top:2.5px;width:5px;height:9px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(45deg)}
+li.done .chk{background:var(--accent);border-color:var(--accent)}
+li.done .chk::after{border-color:var(--paper)}
+li.done .t{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint)}
+.t{min-width:0;overflow-wrap:anywhere;cursor:pointer}
+.t:hover{color:var(--accent)}
+@media (hover:hover){
+  .t::after{content:"";display:inline-block;width:13px;height:13px;margin-left:8px;vertical-align:-1px;opacity:0;transition:opacity .12s;background:var(--faint);
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2l-3 .9.9-3z' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.3 2.3a1.5 1.5 0 0 1 2.1 2.1L5.6 12.2l-3 .9.9-3z' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+  li.item:hover > div > .t::after{opacity:.8}
+  li.item:hover > div > .t:hover::after{background:var(--accent)}
+}
+.tm{display:inline-block;font-family:var(--round);font-weight:500;font-size:13.5px;color:var(--muted);margin-right:8px;font-variant-numeric:tabular-nums}
+.tm.approx{color:var(--faint)}
+.tm.fixed{color:var(--seal);border:1.5px solid var(--seal);border-radius:6px;padding:0 5px;line-height:1.45;font-weight:700}
+.dur{font-size:12px;color:var(--faint);margin-left:8px;white-space:nowrap}
+.meta{display:flex;gap:4px 10px;flex-wrap:wrap;margin-top:3px;min-width:0;align-items:center}
+.stamp{font-size:12px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
+.stamp i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.stamp.ar{color:var(--c)}
+.stamp.ar span{color:var(--muted)}
+.kind{font-size:11.5px;color:var(--muted);background:var(--paper-2);border:1px solid var(--line);border-radius:6px;padding:0 6px;line-height:1.6}
+.chip{font-size:12px;padding:0 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.75}
+.due{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.due.late,.lateTxt{color:var(--seal);font-weight:500}
+.note{font-size:12.5px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px;line-height:1.6}
+li.locked .t{color:var(--muted)}
+.chip.pj{font-weight:500;display:inline-flex;gap:4px;min-width:0}
+.chip.pj .pn{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chip.pj .ps{flex:none}
+.chip.pj.wait{background:var(--paper-2);color:var(--muted);border:1px solid var(--line);line-height:1.6}
+/* 项目小标签可以点：跳到「项目」页对应的那一步 */
+button.chip.go{border:0;font-family:inherit;cursor:pointer;text-align:left;align-items:center}
+button.chip.go.wait{border:1px solid var(--line)}
+button.chip.go .gochev{flex:none;margin-left:1px;opacity:.6;font-weight:700}
+button.chip.go:hover{background:color-mix(in srgb,var(--accent) 16%,var(--paper))}
+button.chip.go.wait:hover{background:var(--accent-soft);color:var(--accent)}
+button.chip.go:hover .gochev{opacity:1}
+button.chip.go:active{transform:scale(.97)}
+.hl{background:var(--accent-soft)!important}
+.hlCard{box-shadow:0 0 0 3px var(--accent-soft)!important}
+.adot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);vertical-align:3px;margin-right:7px}
+.ntog{border:0;background:transparent;padding:2px 4px;margin-top:1px;color:var(--faint);border-radius:8px;line-height:0}
+.ntog svg{width:18px;height:18px}
+.ntog:hover,.ntog[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft)}
+.day .note{background:var(--paper-2);border-radius:10px;padding:6px 10px;margin-top:6px}
+/* ⓘ popover */
+.hdrBtns{display:flex;gap:8px;align-items:center;flex:none}
+.infoBtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--muted);font-family:var(--round);font-weight:700;font-size:14px;padding:0}
+.infoBtn[aria-expanded="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.infoWrap{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:10;width:min(330px,calc(100vw - 32px));background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(31,43,61,.16);display:flex;flex-direction:column;gap:9px;font-size:13px;color:var(--ink)}
+.pop{display:grid!important;grid-template-columns:auto 1fr;gap:9px 12px;align-items:center}
+.pop[hidden]{display:none!important}
+.pop .r{display:contents}
+.pop .r > :first-child{justify-self:start;margin-right:0}
+.pop{max-width:calc(100vw - 32px);max-height:min(70vh,calc(100vh - 120px));overflow-y:auto;overscroll-behavior:contain;align-content:start}
+.popHead{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:-2px}
+.popHead b{font-size:13.5px;font-weight:700;letter-spacing:.04em;color:var(--ink)}
+.popX{flex:none;width:28px;height:28px;border-radius:50%;border:0;background:var(--paper-2);color:var(--muted);padding:0;font-size:14px;line-height:1;display:inline-grid;place-items:center}
+.popX:hover{color:var(--accent);background:var(--accent-soft)}
+.popBackdrop{position:fixed;inset:0;z-index:50;background:rgba(15,22,33,.42)}
+@media (min-width:601px){.popBackdrop{display:none!important}}
+@media (max-width:600px){
+  .pop{position:fixed;left:50%;top:50%;right:auto;transform:translate(-50%,-50%);z-index:51;width:min(380px,calc(100vw - 32px));max-height:70vh;border-radius:18px;padding:14px 16px 16px;box-shadow:0 18px 48px rgba(15,22,33,.28)}
+}
+.pop .demo-chk{width:18px;height:18px;border-radius:6px;border:1.5px solid var(--accent-2);display:inline-block}
+.lockTxt{font-size:11.5px;color:var(--faint)}
 .thumb{display:block;max-width:220px;max-height:160px;margin-top:6px;border-radius:10px;border:1px solid var(--line);object-fit:cover;cursor:zoom-in}
 .thumb.big{max-width:100%;max-height:none;cursor:zoom-out}
-.routine-next{font-size:12px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:13px}
-.status{font-size:13px;color:var(--muted)}
-.tm{color:var(--muted);font-weight:500}
-.tm.fixed{color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:0 6px;font-weight:600;min-width:0}
-li.locked .t{color:var(--muted)} li.locked .chk{opacity:.4}
-.lockTxt{font-size:11px;color:var(--muted)}
-.proj{display:flex;flex-direction:column;gap:8px}
-.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap} .ph h2{margin:0}
-.bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden} .bar span{display:block;height:100%;background:var(--a-project);border-radius:999px}
-.nextstep{font-size:14px}
-.lateTxt{color:var(--warn)}
-details summary{cursor:pointer;color:var(--muted);font-size:13px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+
+/* routine lines inside a day */
+.rline{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;padding:8px 0 2px;border-top:1px dashed var(--rule)}
+.rline .ric{width:20px;height:20px;display:inline-grid;place-items:center;color:var(--accent);font-size:15px;font-weight:700;flex:none}
+.rline.book{background:var(--accent-soft);border:0;border-radius:12px;padding:8px 10px;margin-top:6px}
+.rline .rt{font-weight:500}
+.rline .acts{margin-left:auto;display:flex;gap:6px}
+.bookline input{font-size:16px;padding:3px 6px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+
+/* ── editor ── */
+.editor{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:12px;margin-top:6px;background:var(--paper-2);border-radius:14px;border:1px solid var(--line)}
+.editor label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+.editor input,.editor select,.editor textarea{font-size:16px;padding:7px 9px;border-radius:9px;border:1px solid var(--line);background:var(--paper);min-width:0}
+.editor textarea{min-height:60px;resize:vertical}
+.editor .row{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap}
+.editor .row .danger{margin-left:auto}
+
+/* ── projects ── */
+.proj{gap:10px}
+.ph{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}
+.ph h2{font-size:17px}
+.prog{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.bar{height:10px;border-radius:999px;background:var(--accent-soft);overflow:hidden;position:relative}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:999px;min-width:10px}
+.bar.zero span{min-width:0}
+.pct{font-family:var(--round);font-weight:700;font-size:15px;color:var(--accent);font-variant-numeric:tabular-nums}
+.pct small{font-weight:500;font-size:12px;color:var(--faint);margin-left:4px}
+.nextstep{font-size:14px;background:var(--paper-2);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.nextstep .lbl{font-size:12px;color:var(--accent);font-weight:500}
+.nextstep b{font-weight:500}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;padding:2px 0}
+details summary:hover{color:var(--accent)}
 .pmenu{margin-left:auto;position:relative}
-.pmenu summary{list-style:none;cursor:pointer;font-size:20px;line-height:1;padding:2px 10px;border-radius:8px;color:var(--muted)}
+.pmenu summary{list-style:none;cursor:pointer;font-size:18px;line-height:1;padding:3px 10px 7px;border-radius:9px;color:var(--muted)}
 .pmenu summary::-webkit-details-marker{display:none}
 .pmenu[open] summary{background:var(--accent-soft)}
-.pmenu-list{position:absolute;right:0;top:100%;margin-top:4px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px;display:flex;flex-direction:column;min-width:120px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
-.pmenu-list button{border:0;text-align:left;padding:8px 10px;background:transparent}
+.pmenu-list{position:absolute;right:0;top:100%;margin-top:4px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:4px;display:flex;flex-direction:column;min-width:128px;box-shadow:0 6px 20px rgba(31,43,61,.14)}
+.pmenu-list button{border:0;text-align:left;padding:8px 10px;background:transparent;border-radius:8px;font-size:14px}
 .pmenu-list button:hover{background:var(--accent-soft)}
-.bookline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--ink)}
-.bookline input{font:inherit;font-size:13px;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
-.chip{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.meta{min-width:0}
-.titleRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.titleRow h1{margin:0}
-.toolsBtn{flex:none;font:inherit;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer}
-.toolsBtn[aria-expanded="true"]{color:var(--accent);border-color:var(--accent)}
-.toolsBody{display:flex;flex-direction:column;gap:8px}
-.toolsBody[hidden]{display:none}
-@media (prefers-reduced-motion:no-preference){.day,.area{transition:border-color .15s}}
+.stagechip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;line-height:1.7}
+.stall{font-size:12.5px;color:var(--seal);background:var(--seal-soft);border-radius:10px;padding:5px 10px}
+
+/* ── areas ── */
+.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.area{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;text-align:left;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.area:hover{border-color:var(--accent-2)}
+.area h3{margin:0;font-size:16px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+.area .nums{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.area .nums b{font-family:var(--round);font-size:18px;color:var(--ink);margin-right:3px}
+.area .next{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+
+.foot{text-align:center;font-size:11px;color:var(--faint);letter-spacing:.04em;padding-top:12px;font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;max-width:calc(100% - 32px)}
+.legend{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+/* done items fold into one line at the bottom of each day page */
+.fold{border-top:1px dashed var(--rule);margin-top:2px}
+.foldDone{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:9px 0 3px;font-size:13.5px;color:var(--muted);text-align:left;border-radius:8px}
+.foldDone:hover{color:var(--accent)}
+.foldDone .fk{width:20px;height:20px;border-radius:7px;background:var(--ok-soft);color:var(--ok);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.foldDone b{display:inline-block;font-family:var(--round);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-inline:2px}
+.foldDone .car{display:inline-block;color:var(--faint);font-size:12px;transition:transform .15s}
+.foldDone[aria-expanded="true"] .car{transform:rotate(90deg)}
+ul.doneList{padding-bottom:2px}
+ul.doneList li.item:first-child{border-top:1px dashed var(--rule)}
+li.ticking .chk{background:var(--accent);border-color:var(--accent)}
+li.ticking .chk::after{border-color:var(--paper)}
+li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--faint)}
+@media (prefers-reduced-motion:no-preference){ li.ticking > div{opacity:.55;transition:opacity .18s ease-out} }
+@media (max-width:420px){
+  .day{padding-inline:14px}
+  h1{font-size:22px}
+  .toolsBtn .lbl{display:none}
+  .toolsBtn{padding:0;width:30px;height:30px;justify-content:center}
+}
+@media (prefers-reduced-motion:no-preference){.area,.btn,.chk{transition:border-color .15s,background-color .15s}}
 </style>
 
 <div class="wrap">
   <header>
-    <div class="titleRow"><h1 id="hubTitle">我的待办库</h1><button type="button" id="toolsBtn" class="toolsBtn" aria-expanded="false" aria-controls="toolsBody">＋ 🔍</button></div>
-    <div class="sub" id="summary">正在打开你的待办库…</div>
+    <div class="titleRow"><h1 id="hubTitle">我的小本本</h1>
+      <div class="hdrBtns">
+        <div class="infoWrap"><button type="button" id="infoBtn" class="infoBtn" aria-expanded="false" aria-controls="infoPop" aria-label="图例说明">i</button>
+          <div class="pop" id="infoPop" role="dialog" aria-label="图例说明" hidden>
+            <div class="popHead"><b>图例</b><button type="button" class="popX" id="infoClose" aria-label="关闭">✕</button></div>
+            <div class="r"><span class="tm fixed">10:30</span><span>约好的时间，不能挪</span></div>
+            <div class="r"><span class="tm">10:30</span><span>自己排的，可以挪</span></div>
+            <div class="r"><span class="tm approx">~10:30</span><span>大概这个时候</span></div>
+            <div class="r"><span class="chip pj">某个项目 · 第 2 步</span><span>属于哪个项目、第几步</span></div>
+            <div class="r"><span class="chip pj wait">第 3 步 · 等上一步</span><span>前一步还没做完，也能先勾掉</span></div>
+            <div class="r"><span class="ric" style="color:var(--accent);font-weight:700;font-size:15px;padding-left:4px">↻</span><span>生活循环，点「今天做了」记一次</span></div>
+            <div class="r"><span class="ntog" style="color:var(--faint)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 3.5h6l3 3V16a.5.5 0 0 1-.5.5h-8.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" stroke-linejoin="round"/><path d="M12 3.5V6.5h3M8 10h5M8 13h3.5"/></svg></span><span>有备注，点开看</span></div>
+          </div></div>
+        <button type="button" id="findBtn" class="toolsBtn" aria-expanded="false" aria-controls="findBody" aria-label="找一件事"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 13.5 13.5"/></svg><span class="lbl">找</span></button>
+        <button type="button" id="addBtn" class="toolsBtn" aria-expanded="false" aria-controls="capForm" aria-label="记一件"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span class="lbl">记一件</span></button>
+      </div></div>
   </header>
 
-  <div id="tools">
-    <div class="toolsBody" id="toolsBody" hidden>
-      <form class="capture" id="capForm">
-        <input id="capInput" placeholder="随手丢进来，之后再排日子" autocomplete="off" aria-label="新的待办">
-        <button class="primary" type="submit">放进收件箱</button>
-      </form>
-      <input id="search" type="search" placeholder="🔍 找一件事：比如「买菜」" aria-label="搜索待办" style="font:inherit;padding:9px 14px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink)">
-    </div>
+  <div class="toolsBody">
+    <form class="capture" id="capForm" hidden>
+      <input id="capInput" placeholder="随手丢进来，之后再排日子" autocomplete="off" aria-label="新的待办">
+      <button class="btn primary" type="submit">放进收件箱</button>
+    </form>
+    <div id="findBody" class="capture" hidden><input id="search" class="field" type="search" placeholder="找一件事，比如「买菜」" aria-label="搜索待办"></div>
   </div>
 
   <nav class="tabs" role="tablist" id="tabs">
+    <span class="tabInk" id="tabInk" aria-hidden="true"></span>
     <button role="tab" data-tab="week" aria-selected="true">本周</button>
     <button role="tab" data-tab="projects" aria-selected="false">项目</button>
     <button role="tab" data-tab="areas" aria-selected="false">分类</button>
@@ -142,25 +309,163 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
   </nav>
 
   <section class="panel" id="panel"></section>
+  <footer class="foot" id="foot"></footer>
 </div>
+<div class="popBackdrop" id="infoBackdrop" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
+// 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
+const TEMPLATE_VERSION = "0.2.0";
+// 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
-  work:{name:"💼 工作",c:"--a-work"}, partner:{name:"💞 另一半",c:"--a-partner"}, me:{name:"🙂 我自己",c:"--a-me"},
-  health:{name:"🩺 健康",c:"--a-health"}, home:{name:"🏠 家",c:"--a-home"}, pet:{name:"🐾 宠物",c:"--a-pet"},
-  money:{name:"💰 钱",c:"--a-money"}, project:{name:"🛠️ 项目",c:"--a-project"}, hobby:{name:"🎤 爱好",c:"--a-hobby"},
-  people:{name:"💌 朋友家人",c:"--a-people"}, misc:{name:"📦 Misc",c:"--a-misc"}
+  work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
+  health:{name:"健康",c:"--a-health"}, home:{name:"家",c:"--a-home"}, pet:{name:"宠物",c:"--a-pet"},
+  money:{name:"钱",c:"--a-money"}, project:{name:"项目",c:"--a-project"}, hobby:{name:"爱好",c:"--a-hobby"},
+  people:{name:"朋友家人",c:"--a-people"}, misc:{name:"杂事",c:"--a-misc"}
 };
 const KINDS = {task:"要做", buy:"要买", idea:"点子", fun:"闲了玩", life:"吃饭睡觉"};
-const DAY_CAP = 4; // 每天最多排几件，留弹性
 const WD = ["周日","周一","周二","周三","周四","周五","周六"];
+const STAGES = {idea:"点子", doing:"进行中", paused:"先放着", done:"完成了"};
 
 let assetsNs = null;
 let db = null, items = [], routines = [], projects = [], tab = "week", areaFilter = null, openId = null, bookOpen = null, loaded = {items:false, routines:false};
-const openProjs = new Set();
-const STAGES = {idea:"💡 点子", doing:"🔨 进行中", paused:"先放着", done:"✅ 完成了"};
+const openProjs = new Set(), openNotes = new Set();
 try { const t = localStorage.getItem("hub.tab"); if (t) tab = t; } catch(e) {}
+// 每天卡片底部「已完成 N 件」默认收起；展开过的日子记在这台设备上
+const foldOpen = new Set();
+try { (JSON.parse(localStorage.getItem("hub.doneOpen")||"[]")||[]).forEach(d=>foldOpen.add(d)); } catch(e) {}
+function saveFold(){ try { localStorage.setItem("hub.doneOpen", JSON.stringify([...foldOpen].sort().slice(-14))); } catch(e) {} }
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+// 动画小工具：收起/展开一行（连同上下内边距、虚线），下面的行跟着平滑上移/下移
+function collapseEl(el, dur, dy){ const cs = getComputedStyle(el); el.style.overflow = "hidden";
+  return el.animate([{height:el.offsetHeight+"px", paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom, borderTopWidth:cs.borderTopWidth, opacity:1, transform:"translateY(0)"},
+    {height:"0px", paddingTop:"0px", paddingBottom:"0px", borderTopWidth:"0px", opacity:0, transform:`translateY(${dy||0}px)`}], {duration:dur, easing:"ease-in-out", fill:"forwards"}).finished.catch(()=>{}); }
+function expandEl(el, dur, dy, flash){ const cs = getComputedStyle(el), h = el.offsetHeight; el.style.overflow = "hidden";
+  const a = el.animate([{height:"0px", paddingTop:"0px", paddingBottom:"0px", borderTopWidth:"0px", opacity:0, transform:`translateY(${dy||0}px)`},
+    {height:h+"px", paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom, borderTopWidth:cs.borderTopWidth, opacity:1, transform:"translateY(0)"}], {duration:dur, easing:"ease-out"});
+  a.finished.then(()=>{ el.style.overflow = ""; }).catch(()=>{});
+  if (flash) el.animate([{backgroundColor:"var(--accent-soft)"},{backgroundColor:"var(--accent-soft)", offset:.35},{backgroundColor:"transparent"}], {duration:1300, easing:"ease-out"}); }
+function bump(el){ if (el) el.animate([{transform:"scale(1)"},{transform:"scale(1.35)"},{transform:"scale(1)"}], {duration:340, easing:"ease-out"}); }
+let pendBump = null, pendBack = null;   // 等数据回来、重画之后再播的动画
+function afterRender(){
+  if (reduceMotion()) { pendBump = pendBack = null; return; }
+  if (pendBump){ const f = document.querySelector(`.foldDone[data-fold="${pendBump.d}"]`);
+    if (f && f.querySelector("b").textContent === String(pendBump.n)){
+      if (pendBump.n === 1) expandEl(f.parentElement, 260, 6); else { bump(f.querySelector("b")); bump(f.querySelector(".fk")); }
+      const nl = f.parentElement.querySelector(`.doneList li[data-id="${pendBump.id}"]`); if (nl) expandEl(nl, 300, -8);
+      pendBump = null; } }
+  if (pendBack){ const el = document.querySelector(`.day > ul.items > li[data-id="${pendBack}"]`);
+    if (el){ expandEl(el, 320, 8, true); pendBack = null; } }
+}
+// 点项目小标签：切到「项目」页，展开那个项目，滚过去，项目卡片和那一步各闪一下浅蓝
+let restOpen = false;
+function pulse(el, isCard){ if (!el) return;
+  if (reduceMotion()){ const c = isCard ? "hlCard" : "hl"; el.classList.add(c); setTimeout(()=>el.classList.remove(c), 1200); return; }
+  el.animate(isCard ? [{boxShadow:"0 0 0 0 transparent"},{boxShadow:"0 0 0 3px var(--accent-soft)", offset:.2},{boxShadow:"0 0 0 0 transparent"}]
+                    : [{backgroundColor:"transparent"},{backgroundColor:"var(--accent-soft)", offset:.2},{backgroundColor:"transparent"}], {duration:1200, easing:"ease-in-out"}); }
+// 平滑滚动：requestAnimationFrame 逐帧改 scrollTop，easeInOutCubic
+function easedScrollTo(y, dur){ return new Promise(res => {
+  const se = document.scrollingElement || document.documentElement;
+  const max = Math.max(0, se.scrollHeight - innerHeight); y = Math.round(Math.min(max, Math.max(0, y)));
+  const y0 = se.scrollTop, dy = y - y0; if (Math.abs(dy) < 2) return res();
+  const t0 = performance.now(), ease = t => t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+  const step = now => { const t = Math.min(1, (now-t0)/dur); se.scrollTop = y0 + dy*ease(t); t < 1 ? requestAnimationFrame(step) : res(); };
+  requestAnimationFrame(step); }); }
+// 动画期间锁住内容高度，结束后再放开（放开时不让页面因为变矮而跳）
+function releasePanel(){ const p = $("#panel"), se = document.scrollingElement || document.documentElement, y = se.scrollTop;
+  p.style.minHeight = ""; const max = se.scrollHeight - innerHeight;
+  if (max < y) p.style.minHeight = (p.offsetHeight + (y - max)) + "px"; }
+const anchorOff = on => { document.documentElement.style.overflowAnchor = on ? "none" : ""; };
+// 换标签页：新内容先在屏幕外画好，旧内容往一边滑出，新内容从另一边滑进（只动 transform / opacity）
+const TAB_ORDER = [...document.querySelectorAll("#tabs button")].map(b=>b.dataset.tab);
+let navTok = 0;
+async function switchTab(next, prep, opts){
+  opts = opts || {};
+  const prev = tab, panel = $("#panel");
+  const anim = !reduceMotion() && next !== prev && !!db && loaded.items;
+  const oldH = panel.offsetHeight;
+  let clone = null;
+  if (anim){
+    const r = panel.getBoundingClientRect();
+    clone = panel.cloneNode(true); clone.removeAttribute("id"); clone.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));
+    clone.setAttribute("aria-hidden","true"); clone.inert = true;
+    // 只保留屏幕里看得见的那一截，旧页面越长越省事
+    const vis = Math.max(0, Math.min(r.height, innerHeight - r.top));
+    Object.assign(clone.style, {position:"fixed", top:Math.max(r.top,0)+"px", left:r.left+"px", width:r.width+"px", height:(r.top<0 ? Math.min(innerHeight, r.bottom) : vis)+"px", overflow:"hidden", margin:"0", pointerEvents:"none", zIndex:"2", minHeight:"", willChange:"transform,opacity"});
+    if (r.top < 0){ const inner = document.createElement("div"); inner.style.cssText = `display:flex;flex-direction:column;gap:12px;transform:translateY(${r.top}px)`; while (clone.firstChild) inner.appendChild(clone.firstChild); clone.appendChild(inner); }
+    document.body.appendChild(clone);
+    anchorOff(true);
+  }
+  const dir = TAB_ORDER.indexOf(next) > TAB_ORDER.indexOf(prev) ? 1 : -1;
+  // 同一个任务里：先把面板移到屏幕外，再换内容、量尺寸，浏览器只会画出移好位置的那一帧
+  if (anim){ panel.style.willChange = "transform,opacity"; panel.style.transform = `translateX(${dir*100}%)`; panel.style.opacity = ".15"; }
+  tab = next; if (prep) prep();
+  try { localStorage.setItem("hub.tab", tab); } catch(e) {}
+  render();
+  const info = opts.afterRender ? (opts.afterRender() || {}) : {};
+  const se = document.scrollingElement || document.documentElement;
+  const navTop = $("#tabs").getBoundingClientRect().top + se.scrollTop - 8;
+  const upTo = !opts.keepScroll && se.scrollTop > navTop ? Math.max(0, navTop) : null;
+  if (!anim){ if (upTo !== null) se.scrollTop = upTo; return info; }
+  panel.style.minHeight = Math.max(oldH, panel.offsetHeight, info.finalH || 0) + "px";
+  // 新页面在屏幕外先画好、排好版（等两帧，让浏览器把首次排版做完），再开始滑，滑的过程中就不会卡
+  // 新页面可能用到还没下载的字（字体按需分片加载），等字体到位（最多 200ms），免得滑到一半换字重排
+  try { if (document.fonts && document.fonts.status !== "loaded") await Promise.race([document.fonts.ready, sleep(200)]); } catch(e) {}
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const o = {duration:380, easing:"cubic-bezier(.45,0,.25,1)"};
+  clone.animate([{transform:"translateX(0)", opacity:1},{transform:`translateX(${-dir*100}%)`, opacity:.15}], {...o, fill:"forwards"});
+  const a = panel.animate([{transform:`translateX(${dir*100}%)`, opacity:.15},{transform:"translateX(0)", opacity:1}], o);
+  panel.style.transform = ""; panel.style.opacity = "";
+  const moves = [a.finished.catch(()=>{})]; if (upTo !== null) moves.push(easedScrollTo(upTo, 380));
+  await Promise.all(moves);
+  clone.remove(); panel.style.willChange = "";
+  if (!opts.keepLock){ releasePanel(); anchorOff(false); }
+  return info;
+}
+// 标签页下面那块「纸片」跟着滑到选中的标签
+let inkReady = false;
+function placeInk(){ const nav = $("#tabs"), ink = $("#tabInk"), b = nav.querySelector('button[aria-selected="true"]'); if (!ink || !b) return;
+  if (!inkReady || reduceMotion()) ink.style.transition = "none";
+  Object.assign(ink.style, {left:b.offsetLeft+"px", top:b.offsetTop+"px", width:b.offsetWidth+"px", height:b.offsetHeight+"px"});
+  if (!inkReady){ ink.offsetWidth; requestAnimationFrame(()=>{ inkReady = true; ink.style.transition = ""; }); }
+  else if (!reduceMotion()) ink.style.transition = ""; }
+// 点项目小标签：滑到「项目」页 → 展开项目和滚到那一步同时进行（一个连贯动作）→ 项目卡片和那一步轻轻闪一下
+function goProject(pid, iid){ return goProjectSeq(pid, iid); }
+async function goProjectSeq(pid, iid){
+  const p = projects.find(x=>x.id===pid); if (!p) return;
+  const tok = ++navTok, rm = reduceMotion(), wasOpen = openProjs.has(pid);
+  const find = () => { const det = document.querySelector(`#panel details[data-pid="${pid}"]`); if (!det) return {};
+    return {det, card: det.closest(".box.proj") || det.closest("li.item") || det, row: iid ? det.querySelector(`li.item[data-id="${iid}"]`) : null}; };
+  const prep = () => { areaFilter = null; openId = null;
+    if (q){ q = ""; $("#search").value = ""; $("#findBody").hidden = true; $("#findBtn").setAttribute("aria-expanded","false"); }
+    if (p.stage==="paused" || p.stage==="done") restOpen = true;
+    openProjs.add(pid); };
+  // 在屏幕外按「展开后」的样子量好那一步最终的位置，再把项目收回到只露标题，等滑进来后再展开
+  const measure = () => { if (rm) return {}; const f = find(); if (!f.det) return {};
+    const se = document.scrollingElement || document.documentElement, tg = f.row || f.card, r = tg.getBoundingClientRect();
+    const target = se.scrollTop + r.top - (f.row ? (innerHeight - r.height)/2 : 16);
+    const finalH = $("#panel").offsetHeight;
+    if (wasOpen) return {target, finalH};
+    const fullH = f.det.offsetHeight, sh = f.det.querySelector("summary").offsetHeight;
+    f.det.style.height = sh + "px"; f.det.style.overflow = "hidden";
+    return {target, finalH, fullH, sh, det: f.det}; };
+  const info = await switchTab("projects", prep, {keepScroll:true, keepLock:true, afterRender: measure});
+  if (tok !== navTok){ anchorOff(false); return; }
+  if (rm){ const {card, row} = find(); const tg = row || card; if (tg) tg.scrollIntoView({block: row ? "center" : "start"}); pulse(card, true); pulse(row, false); return; }
+  if (info.target === undefined){ releasePanel(); anchorOff(false); return; }
+  if (!info.det || !info.det.isConnected){ const d = find().det; if (d && info.det){ d.style.height = ""; d.style.overflow = ""; } info.det = null; }
+  const $panel = $("#panel"); $panel.style.minHeight = Math.max($panel.offsetHeight, info.finalH) + "px";
+  const steps = [easedScrollTo(info.target, 600)];
+  if (info.det){ const det = info.det;
+    const an = det.animate([{height:info.sh+"px"},{height:info.fullH+"px"}], {duration:420, easing:"cubic-bezier(.45,0,.25,1)", fill:"forwards"});
+    steps.push(an.finished.then(()=>{ det.style.height = ""; det.style.overflow = ""; an.cancel(); }).catch(()=>{})); }
+  await Promise.all(steps);
+  releasePanel(); anchorOff(false);
+  if (tok !== navTok) return;
+  const {card, row} = find(); pulse(card, true); pulse(row, false);
+}
+const reduceMotion = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){ return false; } };
 
 const $ = s => document.querySelector(s);
 const pad = n => String(n).padStart(2,"0");
@@ -170,15 +475,14 @@ const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new D
 const diffDays = (a,b) => { const p=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}; return Math.round((p(b)-p(a))/86400000); };
 const fmt = s => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); return (m)+"/"+d+" "+WD[x.getDay()]; };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,1800); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2000); }
 function durTxt(m){ m=Number(m)||0; if(!m) return ""; return m>=60 ? (m%60? `${Math.floor(m/60)} 小时 ${m%60} 分`:`${m/60} 小时`) : `${m} 分钟`; }
 const byTime = (a,b) => (a.time||"99")<(b.time||"99")?-1:(a.time||"99")>(b.time||"99")?1:0;
-function stamp(a){ if(!a||!AREAS[a]) return ""; return `<span class="stamp" style="color:var(${AREAS[a].c})">${AREAS[a].name}</span>`; }
+function stamp(a){ if(!a||!AREAS[a]) return ""; return `<span class="stamp ar" style="--c:var(${AREAS[a].c})"><i></i><span>${AREAS[a].name}</span></span>`; }
+const SEAL = `<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><rect x="2.5" y="5.2" width="7" height="5.3" rx="1.3" fill="currentColor"/><path d="M4.2 5.2V4a1.8 1.8 0 0 1 3.6 0v1.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
 
 const open = () => items.filter(i => i.status !== "done");
-// 没记录过上次时间的循环事项不自动排进日程，只在「生活循环」里等她第一次打勾
 function routineNext(r){ return r.last ? addDays(r.last, r.everyDays||30) : null; }
-// 循环事项的阶段：wait 还早 / book 该预约了 / booked 已约好 / due 该做了 / none 还没记录
 const snoozed = r => !!(r.snooze && r.snooze > todayStr());
 const plannedOf = r => items.filter(i=>i.routine===r.id && i.status!=="done" && i.due).sort((a,b)=>a.due<b.due?-1:1)[0] || null;
 function rState(r){ const nx=routineNext(r), t=todayStr();
@@ -192,21 +496,28 @@ function projSteps(pid){ return items.filter(i=>i.project===pid).sort((a,b)=>(a.
 function projInfo(p){ const st=projSteps(p.id), done=st.filter(i=>i.status==="done"), next=st.find(i=>i.status!=="done");
   const moved=[p.lastMoved, ...done.map(i=>i.doneAt)].filter(Boolean).sort().pop()||null; return {st,done,next,moved}; }
 function isLocked(i){ if(!i.project || i.status==="done") return false; const p=projOf(i); if(!p) return false; const nx=projInfo(p).next; return nx && nx.id!==i.id && (nx.step||99)<(i.step||99); }
-const timeHtml = i => i.time ? (i.fixed ? `<span class="mono tm fixed">🔒 ${esc(i.time)}</span> ` : i.approx ? `<span class="mono tm" style="opacity:.7">~${esc(i.time)}</span> ` : `<span class="mono tm">${esc(i.time)}</span> `) : "";
+const timeHtml = i => i.time ? (i.fixed ? `<span class="tm fixed" title="约好的固定时间">${esc(i.time)}</span>` : i.approx ? `<span class="tm approx">~${esc(i.time)}</span>` : `<span class="tm">${esc(i.time)}</span>`) : "";
 
 function itemRow(i){
   const t = todayStr();
   const late = i.due && i.status!=="done" && i.due < t;
-  const metaBits = [stamp(i.area)];
-  const pj = projOf(i); if (pj && tab!=="projects") metaBits.push(`<span class="chip">🛠️ ${esc(pj.title)} · 第 ${i.step||"?"} 步</span>`);
-  const locked = isLocked(i); if (locked) metaBits.push(`<span class="lockTxt">等前一步做完</span>`);
-  if (i.kind && i.kind!=="task") metaBits.push(`<span class="stamp" style="color:var(--muted)">${KINDS[i.kind]}</span>`);
-  if (i.due && tab!=="week") metaBits.push(`<span class="due ${late?"late":""} mono">${fmt(i.due)}${late?" · 过期了":""}</span>`);
-  if (i.due && tab==="week" && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
+  // 本周页只留最要紧的：时间、标题、项目第几步、过期；分类缩成标题前一个小色点，备注默认收起
+  const wk = tab==="week" && !q;
+  const metaBits = wk ? [] : [stamp(i.area)];
+  const locked = isLocked(i);
+  const pj = projOf(i); if (pj && tab!=="projects") metaBits.push(`<button type="button" class="chip pj go ${locked?"wait":""}" data-goproj="${pj.id}" aria-label="去「项目」看 ${esc(pj.title)}"><span class="pn">${esc(pj.title)}</span><span class="ps">· 第 ${i.step||"?"} 步${locked?" · 等上一步":""}</span><span class="gochev" aria-hidden="true">›</span></button>`);
+  else if (locked) metaBits.push(`<span class="chip pj wait">第 ${i.step||"?"} 步 · 等上一步</span>`);
+  if (!wk && i.kind && i.kind!=="task") metaBits.push(`<span class="kind">${KINDS[i.kind]}</span>`);
+  if (i.due && !wk) metaBits.push(`<span class="due ${late?"late":""}">${fmt(i.due)}${late?" · 过期了":""}</span>`);
+  if (i.due && wk && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
+  const meta = metaBits.filter(Boolean).join("");
+  const adot = wk && AREAS[i.area] ? `<span class="adot" style="--c:var(${AREAS[i.area].c})" title="${AREAS[i.area].name}"></span>` : "";
+  const nOpen = openNotes.has(i.id);
+  const ntog = i.note && openId!==i.id ? `<button class="ntog" data-act="note" aria-expanded="${nOpen}" aria-label="${nOpen?"收起备注":"看备注"}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 3.5h6l3 3V16a.5.5 0 0 1-.5.5h-8.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" stroke-linejoin="round"/><path d="M12 3.5V6.5h3M8 10h5M8 13h3.5"/></svg></button>` : `<span></span>`;
   let html = `<li class="item ${i.status==="done"?"done":""} ${locked?"locked":""}" data-id="${i.id}">
     <button class="chk" data-act="toggle" aria-label="${i.status==="done"?"标记为没做":"标记为做完"}"></button>
-    <div style="min-width:0"><div class="t" data-act="edit">${timeHtml(i)}${esc(i.title)}${i.mins?`<span class="dur">${durTxt(i.mins)}</span>`:""}</div><div class="meta">${metaBits.join("")}</div>${i.note && openId!==i.id?`<div class="note">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
-    <span></span>`;
+    <div style="min-width:0"><div class="t" data-act="edit">${adot}${timeHtml(i)}${esc(i.title)}${i.mins&&!wk?`<span class="dur">${durTxt(i.mins)}</span>`:""}</div>${meta?`<div class="meta">${meta}</div>`:""}${i.note && openId!==i.id && nOpen?`<div class="note">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
+    ${ntog}`;
   if (openId === i.id) html += editor(i);
   return html + `</li>`;
 }
@@ -217,57 +528,57 @@ function editor(i){
     <label>名字<input id="e-title" value="${esc(i.title)}"></label>
     <label>哪一天做<input id="e-due" type="date" value="${i.due||""}"></label>
     <label>几点开始<input id="e-time" type="time" value="${i.time||""}"></label>
-    <label>时间类型<select id="e-fixed"><option value="">自己排的，可以挪</option><option value="1" ${i.fixed?"selected":""}>🔒 约好的固定时间</option><option value="approx" ${i.approx&&!i.fixed?"selected":""}>~ 大概这个时候</option></select></label>
+    <label>时间类型<select id="e-fixed"><option value="">自己排的，可以挪</option><option value="1" ${i.fixed?"selected":""}>约好的固定时间</option><option value="approx" ${i.approx&&!i.fixed?"selected":""}>~ 大概这个时候</option></select></label>
     <label>大概要多久（分钟）<input id="e-mins" type="number" min="0" step="5" value="${i.mins||""}"></label>
     <label>分类<select id="e-area">${areaOpts}</select></label>
     <label>类型<select id="e-kind">${kindOpts}</select></label>
     <label>属于哪个项目<select id="e-proj"><option value="">（不属于）</option>${projects.filter(p=>p.stage!=="done").map(p=>`<option value="${p.id}" ${i.project===p.id?"selected":""}>${esc(p.title)}</option>`).join("")}</select></label>
     <label>第几步<input id="e-step" type="number" min="1" step="1" value="${i.step||""}"></label>
     <label style="grid-column:1/-1">备注<textarea id="e-note">${esc(i.note||"")}</textarea></label>
-    ${assetsNs?`<label>图片（截图、照片）<input id="e-img" type="file" accept="image/*"></label>${i.img?`<button data-act="rmimg" style="align-self:end">去掉图片</button>`:""}`:""}
+    ${assetsNs?`<label>图片（截图、照片）<input id="e-img" type="file" accept="image/*"></label>${i.img?`<button class="btn" data-act="rmimg" style="align-self:end">去掉图片</button>`:""}`:""}
     <div class="row">
-      <button class="primary" data-act="save">保存</button>
-      <button data-act="later">${i.status==="someday"?"放回待办":"以后再说"}</button>
-      <button data-act="close">收起</button>
-      <button class="danger" data-act="del">删掉</button>
+      <button class="btn primary" data-act="save">保存</button>
+      <button class="btn" data-act="later">${i.status==="someday"?"放回待办":"以后再说"}</button>
+      <button class="btn" data-act="close">收起</button>
+      <button class="btn ghost danger" data-act="del">删掉</button>
     </div></div>`;
 }
 
 function routineLine(r, withBtn){
   const st = rState(r);
   if (st.s==="book"){
-    if (bookOpen===r.id) return `<div class="bookline" data-rid="${r.id}">📅 ${esc(r.title)} 约在 <input type="date" id="b-date" value="${st.nx}"> <input type="time" id="b-time"> <button data-ract="bookSave" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">存好</button> <button data-ract="bookCancel" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">算了</button></div>`;
-    return `<div class="bookline">📅 该预约了：${esc(r.title)} ${stamp(r.area)} <span class="due">大约 ${fmt(st.nx)} 该做</span> <button data-ract="book" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">约好了</button>${snoozed(r)?"":` <button data-ract="snooze" data-rid="${r.id}" style="padding:2px 8px;font-size:12px">明天再说</button>`}</div>`;
+    if (bookOpen===r.id) return `<div class="rline book bookline" data-rid="${r.id}"><span class="ric">↻</span><span class="rt">${esc(r.title)}</span> 约在 <input type="date" id="b-date" value="${st.nx}"> <input type="time" id="b-time"><span class="acts"><button class="btn sm primary" data-ract="bookSave" data-rid="${r.id}">存好</button><button class="btn sm" data-ract="bookCancel" data-rid="${r.id}">算了</button></span></div>`;
+    return `<div class="rline book"><span class="ric">↻</span><span>该预约了：<span class="rt">${esc(r.title)}</span></span>${stamp(r.area)}<span class="due">大约 ${fmt(st.nx)} 该做</span><span class="acts"><button class="btn sm primary" data-ract="book" data-rid="${r.id}">约好了</button>${snoozed(r)?"":`<button class="btn sm" data-ract="snooze" data-rid="${r.id}">明天再说</button>`}</span></div>`;
   }
-  return `<div class="note">↻ ${esc(r.title)} ${stamp(r.area)} ${withBtn?`<button data-ract="did" data-rid="${r.id}" style="padding:2px 8px;font-size:12px;margin-left:6px">今天做了</button>`:""}</div>`;
+  return `<div class="rline"><span class="ric">↻</span><span class="rt">${esc(r.title)}</span>${stamp(r.area)}${withBtn?`<span class="acts"><button class="btn sm" data-ract="did" data-rid="${r.id}">今天做了</button></span>`:""}</div>`;
 }
 function renderWeek(){
   const t = todayStr(), op = open().filter(i=>i.status!=="someday");
   const late = op.filter(i=>i.due && i.due < t).sort((a,b)=>a.due<b.due?-1:1);
-  let h = `<div class="status"><span class="mono tm fixed">🔒</span> 约好的，不能挪</div>`;
-  if (late.length) h += `<div class="box"><h2>还欠着的</h2><ul class="items">${late.map(itemRow).join("")}</ul></div>`;
+  let h = "";
+  if (late.length) h += `<div class="box oweBox"><h2>还欠着的 <span class="count">${late.length}</span></h2><ul class="items">${late.map(itemRow).join("")}</ul></div>`;
   for (let k=0;k<7;k++){
     const d = addDays(t,k);
-    const dayItems = items.filter(i=>i.due===d && i.status!=="someday" && (i.status!=="done" || k===0) && (!i.daily || k===0)).sort(byTime);
+    // 没做完的按排的日子（due）；做完的放进「真正做完那天」（doneAt，和勾选时写入的 todayStr() 同一种本地日期），老数据没有 doneAt 就退回 due
+    const liveIt = items.filter(i=>i.due===d && i.status!=="done" && i.status!=="someday" && (!i.daily || k===0)).sort(byTime);
+    const doneIt = items.filter(i=>i.status==="done" && (i.doneAt || i.due)===d).sort(byTime);
     const rs = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false;
       if (st.s==="book") return snoozed(r) ? d===r.snooze : k===0;
       if (st.s==="due") return k===0 ? st.nx<=t : st.nx===d;
       if (st.s==="wait" && !r.bookLead) return st.nx===d;
       return false; });
-    const n = dayItems.filter(i=>i.status!=="done").length + rs.length;
-    h += `<div class="day ${k===0?"today":""}"><div class="dayhead"><b>${k===0?"今天 ":k===1?"明天 ":""}<span class="mono">${fmt(d)}</span></b>
-      ${(()=>{ const dn = dayItems.filter(i=>i.status==="done").length;
-        const left = dayItems.filter(i=>i.status!=="done");
-        const mins = left.filter(i=>i.kind!=="fun" && i.kind!=="life").reduce((s,i)=>s+(i.mins||15),0) + rs.length*15;
-        const wd = new Date(d+"T12:00:00").getDay(), weekend = wd===0||wd===6;
-        const cap = weekend ? 300 : 150, full = mins>cap;
-        const hrs = mins<60 ? `${Math.max(5,Math.round(mins/5)*5)} 分钟` : `${(Math.round(mins/30)/2).toString()} 小时`;
-        let s;
-        if (n===0) s = dn ? `都做完了 ✓ ${dn} 件` : "空着，留给临时的事";
-        else { s = `${n} 件 · 约 ${hrs}${full?"，有点满了":""}`; if (dn) s = `还剩 ${s} · 做完 ${dn}`; }
-        return `<span class="load ${full?"full":""}">${s}</span>`; })()}</div>`;
-    if (dayItems.length) h += `<ul class="items">${dayItems.map(itemRow).join("")}</ul>`;
+    const n = liveIt.length + rs.length;
+    const [yy,mm,dd] = d.split("-").map(Number); const wd = new Date(yy,mm-1,dd).getDay();
+    // 右上角只写「做完/总数」，不估时长、不下判断
+    const dn = doneIt.length, total = dn + n;
+    const loadTxt = total===0 ? `<span class="load free">空着</span>`
+      : `<span class="load" aria-label="做完 ${dn} 件，共 ${total} 件"><b>${dn}</b>/${total}</span>`;
+    h += `<div class="day ${k===0?"today":""} ${wd===0||wd===6?"weekend":""}">
+      <div class="dayhead"><span class="dd">${mm}/${dd}</span><span class="wk">${WD[wd]}</span>${k<2?`<span class="rel">${k===0?"今天":"明天"}</span>`:""}${loadTxt}</div>`;
+    if (liveIt.length) h += `<ul class="items">${liveIt.map(itemRow).join("")}</ul>`;
     if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
+    if (doneIt.length){ const fo = foldOpen.has(d);
+      h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk" aria-hidden="true">✓</span><span>已完成<b>${doneIt.length}</b>件</span><span class="car" aria-hidden="true">▸</span></button>${fo?`<ul class="items doneList">${doneIt.map(itemRow).join("")}</ul>`:""}</div>`; }
     h += `</div>`;
   }
   const inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
@@ -281,14 +592,14 @@ function projCard(p){
   const stalled = p.stage==="doing" && (idle===null ? (p.started && diffDays(p.started,t)>=14) : idle>=14);
   const items3 = p.stage==="idea" ? `<button data-pact="doing">开工</button>` : p.stage==="doing" ? `<button data-pact="paused">先放着</button><button data-pact="done">标成完成</button>` : `<button data-pact="doing">接着做</button>`;
   const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${items3}</div></details>`;
-  return `<div class="box proj" data-pid="${p.id}"><div class="ph"><h2>${esc(p.title)}</h2>${stamp(p.area)}${p.stage!=="doing"?`<span class="chip">${STAGES[p.stage]||""}</span>`:""}${menu}</div>
-    ${st.length?`<div class="bar" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div>
-    <div class="status">${done.length} / ${st.length} 步 · ${moved?(idle===0?"今天推进了":`上次推进：${idle} 天前（${fmt(moved)}）`):"还没开始"}${stalled?` · <b class="lateTxt">停住了：继续，还是先放着？</b>`:""}</div>`:`<div class="status">还没拆步骤</div>`}
-    ${next?`<div class="nextstep">下一步：<b>${esc(next.title)}</b>${next.due?` <span class="due mono">${fmt(next.due)}</span>`:` <span class="due">还没排日子</span>`}</div>`:st.length?`<div class="nextstep">步骤都做完了 🎉</div>`:""}
-    ${p.eta?`<div class="status">⏳ ${esc(p.eta)}</div>`:""}
+  return `<div class="box proj" data-pid="${p.id}"><div class="ph"><h2>${esc(p.title)}</h2>${stamp(p.area)}${p.stage!=="doing"?`<span class="stagechip">${STAGES[p.stage]||""}</span>`:""}${menu}</div>
+    ${st.length?`<div class="prog"><div class="bar ${pct===0?"zero":""}" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div><span class="pct">${done.length}/${st.length}<small>步</small></span></div>
+    <div class="status">${moved?(idle===0?"今天推进了":`上次推进：${idle} 天前（${fmt(moved)}）`):"还没开始"}</div>${stalled?`<div class="stall">停住 ${idle??diffDays(p.started,t)} 天了：继续，还是先放着？</div>`:""}`:`<div class="status">还没拆步骤</div>`}
+    ${next?`<div class="nextstep"><span class="lbl">下一步</span><b>${esc(next.title)}</b>${next.due?`<span class="due">${fmt(next.due)}</span>`:`<span class="due">还没排日子</span>`}</div>`:st.length?`<div class="nextstep"><span class="lbl">步骤都做完了</span></div>`:""}
+    ${p.eta?`<div class="status">预计：${esc(p.eta)}</div>`:""}
     ${p.why?`<div class="note">${esc(p.why)}</div>`:""}
     <details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>全部步骤</summary><ul class="items">${st.map(itemRow).join("")}</ul>
-      <form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button type="submit">加</button></form></details>
+      <form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></details>
     </div>`;
 }
 function renderProjects(){
@@ -296,9 +607,9 @@ function renderProjects(){
   const doing = by("doing"), idea = by("idea"), rest = [...by("paused"), ...by("done")];
   return `<div class="status">进行中的最好不超过 3 个。做项目的时间在「本周」里排成时间块。</div>`
     + (doing.length ? doing.map(projCard).join("") : `<div class="empty">还没有进行中的项目。</div>`)
-    + `<div class="box"><h2>💡 点子池</h2>${idea.length?`<ul class="items">${idea.map(p=>`<li class="item"><span class="dot" style="background:var(--a-project);margin-top:7px"></span><div style="min-width:0"><div class="t">${esc(p.title)}</div><div class="meta">${stamp(p.area)}</div>${p.eta?`<div class="status">⏳ ${esc(p.eta)}</div>`:""}${p.why?`<div class="note">${esc(p.why)}</div>`:""}${(()=>{ const st=projSteps(p.id); return `<details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>${st.length?`步骤（${st.length}）`:"加步骤"}</summary>${st.length?`<ul class="items">${st.map(itemRow).join("")}</ul>`:""}<form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button type="submit">加</button></form></details>`; })()}</div><span data-pid="${p.id}"><button data-pact="doing" style="padding:4px 10px;font-size:13px">开工</button></span></li>`).join("")}</ul>`:`<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
-      <form class="capture addidea" style="margin-top:8px"><input placeholder="新点子" aria-label="新的项目点子"><button type="submit">放进点子池</button></form></div>`
-    + (rest.length ? `<details class="box"><summary>先放着 · 完成了（${rest.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${rest.map(projCard).join("")}</div></details>` : "");
+    + `<div class="box"><h2>点子池 <span class="count">${idea.length}</span></h2>${idea.length?`<ul class="items">${idea.map(p=>`<li class="item"><span class="dot" style="background:var(--a-project);margin-top:8px"></span><div style="min-width:0"><div class="t">${esc(p.title)}</div><div class="meta">${stamp(p.area)}</div>${p.eta?`<div class="status">预计：${esc(p.eta)}</div>`:""}${p.why?`<div class="note">${esc(p.why)}</div>`:""}${(()=>{ const st=projSteps(p.id); return `<details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>${st.length?`步骤（${st.length}）`:"加步骤"}</summary>${st.length?`<ul class="items">${st.map(itemRow).join("")}</ul>`:""}<form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></details>`; })()}</div><span data-pid="${p.id}"><button class="btn sm" data-pact="doing">开工</button></span></li>`).join("")}</ul>`:`<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
+      <form class="capture addidea" style="margin-top:8px"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
+    + (rest.length ? `<details class="box" data-rest ${restOpen?"open":""}><summary>先放着 · 完成了（${rest.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${rest.map(projCard).join("")}</div></details>` : "");
 }
 function areaState(k){
   const t=todayStr(), op=open().filter(i=>i.area===k && i.status!=="someday" && (i.kind||"task")!=="idea");
@@ -312,34 +623,32 @@ function renderAreas(){
     const k = areaFilter;
     const list = items.filter(i=>i.area===k && i.status!=="done").sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1);
     const rs = routines.filter(r=>r.area===k), ps = projects.filter(p=>p.area===k && p.stage!=="done");
-    return `<button data-act="back" style="align-self:flex-start">← 分类</button>
-      <div class="box"><h2><span class="dot" style="background:var(${AREAS[k].c})"></span> ${AREAS[k].name}</h2>
-      ${ps.length?`<div class="note" style="margin-bottom:6px">${ps.map(p=>`🛠️ ${esc(p.title)}（${STAGES[p.stage]||""}）`).join("<br>")}</div>`:""}
+    return `<button class="btn" data-act="back" style="align-self:flex-start">← 全部分类</button>
+      <div class="box"><h2><span class="dot" style="background:var(${AREAS[k].c})"></span>${AREAS[k].name}</h2>
+      ${ps.length?`<div class="note" style="margin-bottom:6px">${ps.map(p=>`项目：${esc(p.title)}（${STAGES[p.stage]||""}）`).join("<br>")}</div>`:""}
       ${list.length?`<ul class="items">${list.map(itemRow).join("")}</ul>`:`<div class="empty">这里暂时没有要做的事。</div>`}
       ${rs.length?`<div class="note" style="margin-top:8px">${rs.map(r=>`↻ ${esc(r.title)}，${routineNext(r)?`下次 ${fmt(routineNext(r))}`:"还没开始记录"}`).join("<br>")}</div>`:""}</div>`;
   }
   return `<div class="areas">${Object.entries(AREAS).map(([k,v])=>{
     const s = areaState(k);
     const nx = s.nextDated ? `下一件：${esc(s.nextDated.title)}（${fmt(s.nextDated.due)}）` : "";
-    return `<button class="area" data-area="${k}"><h3><span class="dot" style="background:var(${v.c})"></span>${v.name}</h3>
-      <div class="status">最近两周做完 ${s.doneN} 件 · 还有 ${s.op.length} 件${s.lateN?` · <span class="lateTxt">${s.lateN} 件过期</span>`:""}</div>${nx?`<div class="next">${nx}</div>`:""}</button>`;
+    return `<button class="area" data-area="${k}" style="--c:var(${v.c})"><h3><span class="dot" style="background:var(${v.c})"></span>${v.name}</h3>
+      <div class="nums"><span><b>${s.op.length}</b>件待办</span><span><b>${s.doneN}</b>两周内做完</span>${s.lateN?`<span class="lateTxt"><b style="color:inherit">${s.lateN}</b>过期</span>`:""}</div>${nx?`<div class="next">${nx}</div>`:""}</button>`;
   }).join("")}</div>`;
 }
 function listBox(title, list, emptyMsg){
-  return `<div class="box"><h2>${title}</h2>${list.length?`<ul class="items">${list.map(itemRow).join("")}</ul>`:`<div class="empty">${emptyMsg}</div>`}</div>`;
+  return `<div class="box"><h2>${title} ${list.length?`<span class="count">${list.length}</span>`:""}</h2>${list.length?`<ul class="items">${list.map(itemRow).join("")}</ul>`:`<div class="empty">${emptyMsg}</div>`}</div>`;
 }
 function renderInbox(){
   const list = open().filter(i=>!i.due && !i.project && i.status!=="someday" && (i.kind||"task")==="task");
   return listBox("还没排日子的", list, "收件箱是空的。想到什么就从上面丢进来。") + `<div class="status">点一条，给它选一天、选个分类。项目里的步骤在「项目」页。</div>`;
 }
-function renderBuy(){
-  return listBox("要买的", open().filter(i=>i.kind==="buy" && i.status!=="someday"), "没有要买的东西。");
-}
+function renderBuy(){ return listBox("要买的", open().filter(i=>i.kind==="buy" && i.status!=="someday"), "没有要买的东西。"); }
 function renderFun(){
   const f = open().filter(i=>i.kind==="fun" && i.status!=="someday" && !i.due);
   return `<div class="status">闲下来不知道干嘛的时候来这里挑一件。不排日子，不算任务。</div>`
-    + listBox(`${(AREAS.partner&&AREAS.partner.name)||"💞 另一半"} · 一起玩`, f.filter(i=>i.area==="partner"), "还没有。")
-    + listBox("🎨 自己玩", f.filter(i=>i.area!=="partner"), "还没有。");
+    + listBox(`和${(AREAS.partner&&AREAS.partner.name)||"另一半"}一起`, f.filter(i=>i.area==="partner"), "还没有。")
+    + listBox("自己玩", f.filter(i=>i.area!=="partner"), "还没有。");
 }
 function renderLater(){
   const some = items.filter(i=>i.status==="someday" || i.kind==="idea" && i.status!=="done");
@@ -347,7 +656,6 @@ function renderLater(){
   return listBox("以后再说 · 小想法", some, "没有搁置的事。") + listBox("最近做完的", done, "还没有做完的记录。");
 }
 function renderRoutines(){
-  const t=todayStr();
   const rs = routines.slice().sort((a,b)=>(routineNext(a)||"9")<(routineNext(b)||"9")?-1:1);
   if (!rs.length) return `<div class="empty">还没有循环事项。</div>`;
   const label = r => { const st=rState(r), pl=plannedOf(r);
@@ -357,10 +665,10 @@ function renderRoutines(){
     if (st.s==="due") return `<span class="due late">该做了（${fmt(st.nx)}）</span>`;
     if (st.s==="none") return `<span class="due">还没开始记录，做第一次时点「今天做了」</span>`;
     return `<span class="due">上次 ${fmt(r.last)} · 下次 ${fmt(st.nx)}${r.bookLead?`，${fmt(addDays(st.nx,-r.bookLead))} 起提醒预约`:""}</span>`; };
-  return `<div class="box"><h2>生活循环</h2><div class="status">要预约的事分三步：该预约了 → 约好了（变成一条 🔒 固定时间）→ 做完，自动算下一轮。</div><ul class="items">${rs.map(r=>`<li class="item"><span class="dot" style="background:var(${(AREAS[r.area]||{c:"--muted"}).c});margin-top:7px"></span>
-      <div style="min-width:0"><div class="t">${esc(r.title)}</div><div class="meta">${stamp(r.area)}<span class="due mono">每 ${r.everyDays} 天${r.bookLead?` · 要提前 ${r.bookLead} 天约`:""}</span> ${label(r)}</div>${r.note?`<div class="note">${esc(r.note)}</div>`:""}
+  return `<div class="status">要预约的事分三步：该预约了 → 约好了（变成一条固定时间）→ 做完，自动算下一轮。</div><div class="box"><h2>生活循环 <span class="count">${rs.length}</span></h2><ul class="items">${rs.map(r=>`<li class="item"><span class="dot" style="background:var(${(AREAS[r.area]||{c:"--muted"}).c});margin-top:8px"></span>
+      <div style="min-width:0"><div class="t">${esc(r.title)}</div><div class="meta">${stamp(r.area)}<span class="kind">每 ${r.everyDays} 天${r.bookLead?` · 提前 ${r.bookLead} 天约`:""}</span>${label(r)}</div>${r.note?`<div class="note">${esc(r.note)}</div>`:""}
       ${rState(r).s==="book"&&bookOpen===r.id?routineLine(r,false):""}</div>
-      ${rState(r).s==="book"&&bookOpen!==r.id?`<button data-ract="book" data-rid="${r.id}" style="padding:4px 10px;font-size:13px">约好了</button>`:rState(r).s==="booked"?`<span></span>`:`<button data-ract="did" data-rid="${r.id}" style="padding:4px 10px;font-size:13px">今天做了</button>`}</li>`).join("")}</ul></div>`;
+      ${rState(r).s==="book"&&bookOpen!==r.id?`<button class="btn sm primary" data-ract="book" data-rid="${r.id}">约好了</button>`:rState(r).s==="booked"?`<span></span>`:`<button class="btn sm" data-ract="did" data-rid="${r.id}">今天做了</button>`}</li>`).join("")}</ul></div>`;
 }
 
 let q = "";
@@ -377,12 +685,11 @@ function renderSearch(){
   const hit = x => ((x.title||"")+" "+(x.note||"")+" "+(x.why||"")).toLowerCase().includes(k);
   const its = items.filter(hit), ps = projects.filter(hit), rs = routines.filter(hit);
   let h = `<div class="status">找到 ${its.length+ps.length+rs.length} 条「${esc(q)}」</div>`;
-  if (ps.length) h += `<div class="box"><h2>项目</h2>${ps.map(p=>`<div class="note">🛠️ ${esc(p.title)} · ${STAGES[p.stage]||""}</div>`).join("")}</div>`;
+  if (ps.length) h += `<div class="box"><h2>项目</h2>${ps.map(p=>`<div class="note">${esc(p.title)} · ${STAGES[p.stage]||""}</div>`).join("")}</div>`;
   if (rs.length) h += `<div class="box"><h2>生活循环</h2>${rs.map(r=>`<div class="note">↻ ${esc(r.title)} · 每 ${r.everyDays} 天</div>`).join("")}</div>`;
   if (its.length) h += `<div class="box"><h2>待办</h2><ul class="items">${its.map(i=>itemRow(i).replace('<div class="meta">',`<div class="meta"><span class="chip">${esc(whereIs(i))}</span>`)).join("")}</ul></div>`;
   return h;
 }
-// 数据库一有变动就会重画页面；如果正在编辑某一条，先把还没保存的输入记下来，画完再填回去，免得被冲掉
 function render(){
   const keep = {}; let focusId = null;
   document.querySelectorAll(".editor [id^='e-'], .bookline [id^='b-']").forEach(el => { if (el.type!=="file") keep[el.id] = el.value; });
@@ -390,9 +697,11 @@ function render(){
   renderInner();
   for (const [id,val] of Object.entries(keep)){ const el = document.getElementById(id); if (el) el.value = val; }
   if (focusId){ const el = document.getElementById(focusId); if (el) el.focus(); }
+  afterRender();
 }
 function renderInner(){
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===tab)));
+  placeInk();
   const p = $("#panel");
   if (!db){ p.innerHTML = `<div class="empty">${loaded.failed?"这个页面现在读不到数据。用你自己的账号登录后打开它。":"正在连接…"}</div>`; return; }
   if (!loaded.items){ p.innerHTML = `<div class="empty">正在读取待办…</div>`; return; }
@@ -400,19 +709,29 @@ function renderInner(){
   const rToday = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false; return (st.s==="book" && !snoozed(r)) || (st.s==="due" && st.nx<=t); }).length;
   const todayN = op.filter(i=>i.due===t).length + rToday, lateN = op.filter(i=>i.due && i.due<t).length, inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
   const doingN = projects.filter(p=>p.stage==="doing").length;
-  $("#summary").textContent = `${fmt(t)} · 今天 ${todayN} 件 · ${lateN?`欠着 ${lateN} 件 · `:""}收件箱 ${inboxN} 件 · ${doingN} 个项目在做`;
   if (q){ p.innerHTML = renderSearch(); return; }
   p.innerHTML = tab==="week"?renderWeek():tab==="projects"?renderProjects():tab==="areas"?renderAreas():tab==="inbox"?renderInbox():tab==="routines"?renderRoutines():tab==="buy"?renderBuy():tab==="fun"?renderFun():renderLater();
 }
 
 async function write(ref, fn, okMsg){
   try { await fn(ref); if(okMsg) toast(okMsg); }
-  catch(e){ toast(e && e.code==="quota_exceeded" ? "存不下了：待办库满了" : "没存上，再试一次"); }
+  catch(e){ toast(e && e.code==="quota_exceeded" ? "存不下了：待办库满了" : "没存上，再试一次"); pendBump = pendBack = null; render(); }
 }
 
 document.addEventListener("click", async ev => {
   const tb = ev.target.closest("#tabs button");
-  if (tb){ tab = tb.dataset.tab; areaFilter=null; q=""; $("#search").value=""; openId=null; try{localStorage.setItem("hub.tab",tab)}catch(e){} render(); return; }
+  if (tb){ navTok++; switchTab(tb.dataset.tab, () => { areaFilter=null; q=""; $("#search").value=""; openId=null; }); return; }
+  const gp = ev.target.closest("[data-goproj]");
+  if (gp){ ev.stopPropagation(); const li = gp.closest("li.item"); goProject(gp.dataset.goproj, li && li.dataset.id); return; }
+  const fb = ev.target.closest("[data-fold]");
+  if (fb){ const d = fb.dataset.fold, was = foldOpen.has(d), anim = !reduceMotion();
+    if (fb.dataset.busy) return; fb.dataset.busy = "1";
+    if (was && anim){ fb.setAttribute("aria-expanded","false"); const ul = fb.parentElement.querySelector(".doneList"); if (ul) await collapseEl(ul, 280, 0); }
+    was ? foldOpen.delete(d) : foldOpen.add(d); saveFold(); render();
+    if (!was && anim){ const f = document.querySelector(`.foldDone[data-fold="${d}"]`), ul = f && f.parentElement.querySelector(".doneList");
+      if (ul) expandEl(ul, 300, 0);
+      if (f) f.querySelector(".car").animate([{transform:"rotate(0deg)"},{transform:"rotate(90deg)"}], {duration:200, easing:"ease-in-out"}); }
+    return; }
   const ar = ev.target.closest("[data-area]");
   if (ar){ areaFilter = ar.dataset.area; render(); return; }
   const rb = ev.target.closest("[data-ract]");
@@ -430,24 +749,34 @@ document.addEventListener("click", async ev => {
   const pb = ev.target.closest("[data-pact]");
   if (pb && db){ const host = pb.closest("[data-pid]"); const pr = host && projects.find(x=>x.id===host.dataset.pid); if(!pr) return;
     const stg = pb.dataset.pact, v = {stage:stg}; if (stg==="doing" && !pr.started) v.started = todayStr(); if (stg==="done") v.doneAt = todayStr();
-    await write(db.doc("projects/"+pr.id), ref=>ref.update(v), stg==="doing"?"开工了":stg==="done"?"项目完成 🎉":"先放着了"); return; }
+    await write(db.doc("projects/"+pr.id), ref=>ref.update(v), stg==="doing"?"开工了":stg==="done"?"项目完成":"先放着了"); return; }
   const a = ev.target.closest("[data-act]"); if (!a) return;
   if (a.dataset.act==="back"){ areaFilter=null; render(); return; }
   const li = a.closest("li.item"); const id = li && li.dataset.id; const it = items.find(x=>x.id===id);
   if (!it || !db) return;
   const ref = db.doc("items/"+id);
   switch(a.dataset.act){
-    case "toggle":
-      if (isLocked(it) && it.status!=="done") toast("这一步前面还有没做完的，先记成做完了");
-      await write(ref, r=>r.update(it.status==="done"?{status:"todo",doneAt:null}:{status:"done",doneAt:todayStr()}), it.status==="done"?"放回去了":"做完了");
-      if (it.routine && it.status!=="done"){ const r = routines.find(x=>x.id===it.routine); if (r) await write(db.doc("routines/"+r.id), x=>x.update({last: (it.due && it.due<=todayStr()) ? it.due : todayStr(), booked:null}), null); }
-      break;
+    case "toggle": {
+      const wasDone = it.status==="done";
+      if (li.classList.contains("ticking")) break;
+      // 本周卡片里：勾上 → 划掉变淡 → 这一行收起、往下滑向「已完成」，下面的行跟着上移，计数轻轻跳一下；
+      // 取消勾选 → 从折叠里收起，再在原来的时间位置展开并闪一下。减少动态效果时全部瞬间完成。
+      if (li.closest(".day") && !reduceMotion()){
+        li.classList.add("ticking");
+        if (!wasDone){ await sleep(200); await collapseEl(li, 300, 10);
+          const t = todayStr(), n = items.filter(i=>i.status==="done" && (i.doneAt||i.due)===t).length + 1; pendBump = {d:t, n, id}; }
+        else { await collapseEl(li, 260, -8); pendBack = id; } }
+      if (isLocked(it) && !wasDone) toast("这一步前面还有没做完的，先记成做完了");
+      await write(ref, r=>r.update(wasDone?{status:"todo",doneAt:null}:{status:"done",doneAt:todayStr()}), wasDone?"放回去了":"做完了");
+      if (it.routine && !wasDone){ const r = routines.find(x=>x.id===it.routine); if (r) await write(db.doc("routines/"+r.id), x=>x.update({last: (it.due && it.due<=todayStr()) ? it.due : todayStr(), booked:null}), null); }
+      break; }
     case "edit": openId = openId===id?null:id; render(); break;
     case "zoom": a.classList.toggle("big"); break;
     case "rmimg": await write(ref, r=>r.update({img:null}), "图片去掉了"); break;
+    case "note": openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); break;
     case "close": openId=null; render(); break;
-    case "later": await write(ref, r=>r.update({status: it.status==="someday"?"todo":"someday"}), it.status==="someday"?"放回待办了":"放到以后再说了"); openId=null; break;
-    case "del": await write(ref, r=>r.delete(), "删掉了"); openId=null; break;
+    case "later": openId=null; await write(ref, r=>r.update({status: it.status==="someday"?"todo":"someday"}), it.status==="someday"?"放回待办了":"放到以后再说了"); break;
+    case "del": openId=null; await write(ref, r=>r.delete(), "删掉了"); break;
     case "save": {
       const v = {title:$("#e-title").value.trim()||it.title, due:$("#e-due").value||null, time:$("#e-time").value||null, mins:Number($("#e-mins").value)||null, area:$("#e-area").value||null, kind:$("#e-kind").value, note:$("#e-note").value.trim(), fixed:$("#e-fixed").value==="1", approx:$("#e-fixed").value==="approx", project:$("#e-proj").value||null, step:Number($("#e-step").value)||null};
       const f = $("#e-img") && $("#e-img").files[0];
@@ -467,38 +796,81 @@ document.addEventListener("submit", async ev => {
     await write(db.collection("projects"), c=>c.add({title:v, stage:"idea", area:"project", why:"", created:todayStr()}), "放进点子池了");
   }
 });
-document.addEventListener("toggle", ev => { const d = ev.target; if (d.tagName==="DETAILS" && d.dataset.pid){ d.open ? openProjs.add(d.dataset.pid) : openProjs.delete(d.dataset.pid); } }, true);
-
+document.addEventListener("toggle", ev => { const d = ev.target; if (d.tagName==="DETAILS" && d.hasAttribute("data-rest")) restOpen = d.open; if (d.tagName==="DETAILS" && d.dataset.pid){ d.open ? openProjs.add(d.dataset.pid) : openProjs.delete(d.dataset.pid); } }, true);
 $("#capForm").addEventListener("submit", async ev => {
   ev.preventDefault();
   const v = $("#capInput").value.trim(); if (!v || !db) return;
   $("#capInput").value = "";
   await write(db.collection("items"), c=>c.add({title:v, status:"todo", kind:"task", area:null, due:null, note:"", created:todayStr()}), "放进收件箱了");
 });
-
-// ⋯ 菜单：点菜单外任何地方、按 Esc，都收起来
 document.addEventListener("click", ev => {
   document.querySelectorAll("details.pmenu[open]").forEach(d => { if (!d.contains(ev.target)) d.open = false; });
 }, true);
-document.addEventListener("keydown", ev => {
-  if (ev.key === "Escape") document.querySelectorAll("details.pmenu[open]").forEach(d => d.open = false);
-});
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") document.querySelectorAll("details.pmenu[open]").forEach(d => d.open = false); });
 $("#search").addEventListener("input", e => { q = e.target.value.trim(); render(); });
-$("#toolsBtn").addEventListener("click", e => { const b=$("#toolsBody"), open=b.hidden; b.hidden=!open; e.currentTarget.setAttribute("aria-expanded", String(open));
-  if (open) $("#capInput").focus(); else if (q){ q=""; $("#search").value=""; render(); } });
+const setInfo = (on, refocus) => { const was = !$("#infoPop").hidden;
+  $("#infoPop").hidden = !on; $("#infoBackdrop").hidden = !on; $("#infoBtn").setAttribute("aria-expanded", String(on));
+  if (on && !was) $("#infoClose").focus({preventScroll:true}); else if (!on && was && refocus) $("#infoBtn").focus({preventScroll:true}); };
+$("#infoBtn").addEventListener("click", () => setInfo($("#infoPop").hidden));
+$("#infoClose").addEventListener("click", () => setInfo(false, true));
+document.addEventListener("click", ev => { if (!ev.target.closest(".infoWrap")) setInfo(false); }, true);
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") setInfo(false, true); });
+// 记一件、找 分成两个按钮，一次只开一个
+function setPanel(which){
+  const add = which==="add", find = which==="find";
+  $("#capForm").hidden = !add; $("#addBtn").setAttribute("aria-expanded", String(add));
+  $("#findBody").hidden = !find; $("#findBtn").setAttribute("aria-expanded", String(find));
+  if (!find && q){ q=""; $("#search").value=""; render(); }
+  if (add) $("#capInput").focus(); if (find) $("#search").focus();
+}
+$("#addBtn").addEventListener("click", () => setPanel($("#capForm").hidden ? "add" : null));
+$("#findBtn").addEventListener("click", () => setPanel($("#findBody").hidden ? "find" : null));
+$("#foot").textContent = `小秘书 · 小本本 v${TEMPLATE_VERSION}`;
 render();
+try { document.fonts && document.fonts.ready.then(()=>placeInk()); } catch(e) {}
+addEventListener("resize", () => placeInk());
+// 演示模式：网址末尾加 #demo，用假数据在内存里跑一遍（不读写任何真数据），方便截图和预览
+function demoDb(){
+  const t = todayStr(), d = n => addDays(t, n), store = {items:{}, routines:{}, projects:{}, meta:{}}, subs = {items:[], routines:[], projects:[], meta:[]};
+  let seq = 0; const put = (c, v, id) => { id = id || (c[0] + (++seq)); store[c][id] = v; return id; };
+  put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
+  const pj = put("projects", {title:"整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
+  put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
+  [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
+   {title:"挑一盏台灯", project:pj, step:2, due:t, area:"home", mins:30},
+   {title:"把旧书捐掉", project:pj, step:3, due:d(2), area:"home"},
+   {title:"牙医复查", due:t, time:"16:30", fixed:true, area:"health", mins:60},
+   {title:"写周报", due:t, area:"work", mins:30},
+   {title:"晚饭", due:t, time:"19:00", approx:true, kind:"life", area:"me", note:"冰箱里有番茄和鸡蛋"},
+   {title:"回复房东邮件", due:t, status:"done", doneAt:t, area:"home"},
+   {title:"交水电费", due:d(-1), area:"money"},
+   {title:"和另一半去看电影", due:d(1), time:"20:00", approx:true, kind:"fun", area:"partner"},
+   {title:"买猫砂", kind:"buy", area:"pet"},
+   {title:"给朋友寄生日卡", due:d(3), area:"people"},
+   {title:"研究一下新的记账方法", area:"money"},
+   {title:"周末去公园野餐", kind:"fun", area:"partner"}
+  ].forEach(v => put("items", {status:"todo", kind:"task", note:"", created:d(-7), ...v}));
+  put("routines", {title:"理发", everyDays:42, last:d(-40), bookLead:3, area:"me"});
+  put("routines", {title:"给爸妈打电话", everyDays:7, last:d(-7), area:"people"});
+  const snap = c => ({docs: Object.entries(store[c]).map(([id, v]) => ({id, data: () => ({...v})}))});
+  const emit = c => setTimeout(() => subs[c].forEach(f => f(snap(c))), 0);
+  const docRef = path => { const [c, id] = path.split("/");
+    return {update: async v => { store[c][id] = {...store[c][id], ...v}; emit(c); }, delete: async () => { delete store[c][id]; emit(c); }}; };
+  return {collection: c => ({onSnapshot: f => { subs[c].push(f); f(snap(c)); return () => {}; }, add: async v => { put(c, v); emit(c); }}), doc: docRef};
+}
 (async () => {
-  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e) { db = null; }
+  try { db = location.hash === "#demo" ? demoDb() : window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e) { db = null; }
   if (!db){ loaded.failed = true; render(); return; }
-  try { assetsNs = await window.claude.use("assets"); } catch(e) { assetsNs = null; }
+  try { assetsNs = location.hash === "#demo" ? null : await window.claude.use("assets"); } catch(e) { assetsNs = null; }
   render();
   db.collection("items").onSnapshot(s => { items = s.docs.map(d => ({id:d.id, ...d.data()})); loaded.items = true; render(); },
     () => { loaded.failed = true; render(); });
   db.collection("routines").onSnapshot(s => { routines = s.docs.map(d => ({id:d.id, ...d.data()})); loaded.routines = true; render(); }, () => {});
+  db.collection("projects").onSnapshot(s => { projects = s.docs.map(d => ({id:d.id, ...d.data()})); render(); }, () => {});
+  // meta/config：{title, areaNames:{partner:"…", pet:"…"}}。没有就用默认的「我的小本本」和默认分类名
   db.collection("meta").onSnapshot(s => { const c = s.docs.find(d => d.id === "config"); if (!c) return; const v = c.data() || {};
     if (v.title) { document.title = v.title; const h = document.getElementById("hubTitle"); if (h) h.textContent = v.title; }
     if (v.areaNames) { for (const [k, n] of Object.entries(v.areaNames)) { if (AREAS[k] && n) AREAS[k] = {...AREAS[k], name: n}; } }
     render(); }, () => {});
-  db.collection("projects").onSnapshot(s => { projects = s.docs.map(d => ({id:d.id, ...d.data()})); render(); }, () => {});
 })();
 </script>

@@ -16,6 +16,18 @@ A personal life assistant for the Claude app, packaged as a Claude skill. Once i
 
 The hub has tabs for: This week, Projects, Areas, Inbox, Routines (haircuts, checkups and other recurring things), Shopping, For fun, and Someday.
 
+## What's new in v0.2
+
+- **New hub page ("小本本", the little notebook)**: a blue-and-white planner look; each day's finished items fold into a "Done N" line at the bottom of the day they were actually finished, with a small animation when you tick something off; the project chip on a step slides you over to that step on the Projects tab; an ⓘ button shows the legend. The footer shows the template version. Add `#demo` to the page URL to preview it with fake data.
+- **More day-to-day rules** (in `references/conventions.md` and `references/daily-rhythm.md`): clear the inbox every Sunday, schedule a project's next step as soon as the last one is done, check for conflicts before scheduling, write "note this down" requests into the hub right away, keep facts out of reminder text, never tick what wasn't done, file done items by their actual completion date, one combined "getting ready" item on workday mornings, email digests in a quiet morning slot, how pushy reminders should be, "reading the room", and an optional protocol for two family members' assistants to pass notes by email.
+
+Full history: [CHANGELOG.md](CHANGELOG.md).
+
+## Upgrading from v0.1
+
+1. Follow steps 1–3 under Install below and re-upload the new `xiaomishu.zip` in Skills (replacing the old one).
+2. Start a new chat and say **"小秘书升级一下"** (or "upgrade xiaomishu"). Claude republishes the new page to your existing hub URL (your data stays), then reads you the new rules and only writes them into `meta/conventions` once you agree.
+
 ## Install
 
 You need the Claude app (web, desktop or mobile) with Skills, Artifacts, memory and scheduled tasks available. Which features you have depends on your plan and settings.
@@ -40,12 +52,12 @@ You install a skill yourself, so Claude treats it as real instructions. Content 
 
 ```
 xiaomishu/
-├── SKILL.md                    install flow + day-to-day rules
+├── SKILL.md                    install flow + day-to-day rules + upgrade
 ├── assets/hub-template.html    the to-do hub page
 └── references/
     ├── onboarding.md           onboarding questionnaire
     ├── conventions.md          hub data rules
-    ├── daily-rhythm.md         morning and evening check-ins
+    ├── daily-rhythm.md         check-ins, reminder etiquette, family notes
     ├── persona.md              personality
     └── safety.md               what it won't do
 ```
