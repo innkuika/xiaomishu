@@ -128,7 +128,9 @@ li.done .t{color:var(--faint);text-decoration:line-through;text-decoration-color
 .body[data-act="note"]{cursor:pointer}
 .body[data-act="note"]:hover .t{color:var(--accent)}
 .t[role="button"]{border-radius:6px}
-.nh{display:inline-block;margin-left:6px;font-size:11px;color:var(--faint);transition:transform .15s;vertical-align:1px}
+/* 有备注的小箭头：紧跟标题最后一个字，细线 SVG（不用 ▸ 字符：iPhone 的中文字体把它排成全角，前后空出一大块） */
+.nh{display:inline-block;width:9px;height:9px;margin-left:3px;vertical-align:0;color:var(--faint);transition:transform .18s ease,color .15s;overflow:visible}
+.tl{white-space:nowrap}
 .t[aria-expanded="true"] .nh{transform:rotate(90deg);color:var(--accent)}
 .pen{width:32px;height:32px;margin:-5px -6px -5px 0;border:0;background:transparent;border-radius:9px;color:var(--faint);padding:0;font-size:16px;line-height:1;display:inline-grid;place-items:center;flex:none}
 .pen:hover,.pen[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
@@ -256,7 +258,7 @@ details summary:hover{color:var(--accent)}
 .foldDone:hover{color:var(--accent)}
 .foldDone .fk{width:20px;height:20px;border-radius:7px;background:var(--ok-soft);color:var(--ok);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none}
 .foldDone b{display:inline-block;font-family:var(--round);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-inline:2px}
-.foldDone .car{display:inline-block;color:var(--faint);font-size:12px;transition:transform .15s}
+.foldDone .car{display:inline-block;width:9px;height:9px;color:var(--faint);transition:transform .18s ease}
 .foldDone[aria-expanded="true"] .car{transform:rotate(90deg)}
 ul.doneList{padding-bottom:2px}
 ul.doneList li.item:first-child{border-top:1px dashed var(--rule)}
@@ -271,6 +273,18 @@ li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-co
   .toolsBtn{padding:0;width:30px;height:30px;justify-content:center}
 }
 @media (prefers-reduced-motion:no-preference){.area,.btn,.chk{transition:border-color .15s,background-color .15s}}
+/* 长标题不撑破屏幕：弹性/网格里的子元素都允许缩到 0，长串字母也能断行，小标签自己截断 */
+.body,.t,.note,.meta,.nextstep,.nextstep b,.ph h2,.box h2,.area h3,.area .next,.rline > span,.status,.stall{min-width:0;max-width:100%}
+.t,.note,.nextstep b,.ph h2,.box h2,.area h3,.area .next,.rline .rt,.status,.stall{overflow-wrap:anywhere;word-break:break-word}
+.meta > *,button.chip,.chip.pj{min-width:0;max-width:100%}
+.chip.pj .pn{flex:0 1 auto}
+.prog{grid-template-columns:minmax(0,1fr) auto}
+.pop{grid-template-columns:auto minmax(0,1fr)}
+.box,.day,.area,li.item{min-width:0;max-width:100%}
+.editor input,.editor select,.editor textarea{width:100%;max-width:100%}
+.thumb{max-width:min(220px,100%);height:auto}
+.thumb.big{width:auto;height:auto}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 </style>
 
 <div class="wrap">
@@ -286,7 +300,7 @@ li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-co
             <div class="r"><span class="chip pj">某个项目 · 第 2 步</span><span>属于哪个项目、第几步</span></div>
             <div class="r"><span class="chip pj wait">第 3 步 · 等上一步</span><span>前一步还没做完，也能先勾掉</span></div>
             <div class="r"><span class="ric" style="color:var(--accent);font-weight:700;font-size:15px;padding-left:4px">↻</span><span>生活循环，点「今天做了」记一次</span></div>
-            <div class="r"><span style="color:var(--faint);font-size:12px;padding-left:6px">▸</span><span>有备注，点这一行展开</span></div>
+            <div class="r"><span style="padding-left:6px;display:inline-flex"><svg class="nh" style="margin:0" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>有备注，点这一行展开</span></div>
             <div class="r"><span class="pen" style="margin:0;width:24px;height:24px;color:var(--muted)">✎</span><span>改名字、日子、分类</span></div>
             <div class="r"><span class="skipchip">跳过</span><span>忘了做/没做，不算欠着</span></div>
           </div></div>
@@ -323,7 +337,7 @@ li.ticking .t{color:var(--faint);text-decoration:line-through;text-decoration-co
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.1";
+const TEMPLATE_VERSION = "0.2.3";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -508,6 +522,35 @@ function projInfo(p){ const st=projSteps(p.id), done=st.filter(i=>i.status==="do
 function isLocked(i){ if(!i.project || isClosed(i)) return false; const p=projOf(i); if(!p) return false; const nx=projInfo(p).next; return nx && nx.id!==i.id && (nx.step||99)<(i.step||99); }
 const timeHtml = i => i.time ? (i.fixed ? `<span class="tm fixed" title="约好的固定时间">${esc(i.time)}</span>` : i.approx ? `<span class="tm approx">~${esc(i.time)}</span>` : `<span class="tm">${esc(i.time)}</span>`) : "";
 
+// 有备注的标题：最后一个字和小箭头粘在一起，箭头不会单独掉到下一行
+const CHEV = '<svg class="nh" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function titleWithChev(t){ const cs = Array.from(String(t ?? "")), last = cs.pop() || ""; return esc(cs.join("")) + `<span class="tl">${esc(last)}${CHEV}</span>`; }
+// 图片：id → 地址记在 Map 里（src 稳定）；记住原图尺寸，重画时先占好位置；重画后把旧的 <img> 节点换回去，不重新加载、不闪
+const imgUrls = new Map(), imgDims = new Map(), imgPool = new Map();
+function imgSrc(id){ let u = imgUrls.get(id); if (!u){ u = "/_blob/" + id; imgUrls.set(id, u); } return u; }
+function thumbHtml(i){ const src = imgSrc(i.img), d = imgDims.get(src);
+  let wh = ""; if (d){ const k = Math.min(1, 220/d[0], 160/d[1]); wh = ` width="${Math.round(d[0]*k)}" height="${Math.round(d[1]*k)}"`; }
+  return `<img class="thumb" data-act="zoom" data-key="${esc(i.id+"|"+i.img)}" src="${esc(src)}" alt="${esc(i.title)}"${wh} decoding="async" loading="lazy">`; }
+document.addEventListener("load", ev => { const t = ev.target;
+  if (t && t.tagName === "IMG" && t.classList.contains("thumb") && t.naturalWidth) imgDims.set(t.getAttribute("src"), [t.naturalWidth, t.naturalHeight]); }, true);
+function adoptImgs(root){
+  root.querySelectorAll("img.thumb[data-key]").forEach(n => { const k = n.dataset.key, old = imgPool.get(k);
+    if (old && old !== n && !old.isConnected && old.getAttribute("src") === n.getAttribute("src")){ old.alt = n.alt; n.replaceWith(old); }
+    else imgPool.set(k, n); });
+  if (imgPool.size > 300) for (const [k, n] of imgPool) if (!n.isConnected) imgPool.delete(k); }
+// 展开/收起备注：只改被点的这一行（不重画整页，图片不会重新加载）
+function toggleNote(li, it){
+  const t = li.querySelector('.t[role="button"]'), body = li.querySelector(".body"), on = !openNotes.has(it.id);
+  on ? openNotes.add(it.id) : openNotes.delete(it.id);
+  if (!t || !body){ render(); return; }
+  const nid = "n-" + it.id; let n = body.querySelector(":scope > .note");
+  t.setAttribute("aria-expanded", String(on)); t.title = on ? "收起备注" : "看备注";
+  if (on){ t.setAttribute("aria-controls", nid);
+    if (!n){ n = document.createElement("div"); n.className = "note"; n.id = nid; n.textContent = it.note || "";
+      (body.querySelector(":scope > .meta") || t).after(n);
+      if (!reduceMotion()) n.animate([{opacity:0, transform:"translateY(-3px)"},{opacity:1, transform:"none"}], {duration:160, easing:"ease-out"}); } }
+  else { t.removeAttribute("aria-controls"); if (n) n.remove(); }
+}
 function itemRow(i){
   const t = todayStr();
   const late = i.due && !isClosed(i) && i.status!=="someday" && i.due < t;
@@ -529,7 +572,7 @@ function itemRow(i){
   const tAttrs = hasNote ? ` role="button" tabindex="0" aria-expanded="${nOpen}" ${nOpen?` aria-controls="${nid}"`:""} title="${nOpen?"收起备注":"看备注"}"` : "";
   let html = `<li class="item ${dn?"done":""} ${sk?"skipped":""} ${locked?"locked":""}" data-id="${i.id}">
     <button class="chk" data-act="toggle" aria-label="${dn?"标记为没做":"标记为做完"}"></button>
-    <div class="body" style="min-width:0"${hasNote?` data-act="note"`:""}><div class="t"${tAttrs}>${adot}${timeHtml(i)}${esc(i.title)}${i.mins&&!wk?`<span class="dur">${durTxt(i.mins)}</span>`:""}${hasNote?`<span class="nh" aria-hidden="true">▸</span>`:""}</div>${meta?`<div class="meta">${meta}</div>`:""}${nOpen?`<div class="note" id="${nid}">${esc(i.note)}</div>`:""}${i.img?`<img class="thumb" data-act="zoom" src="/_blob/${esc(i.img)}" alt="${esc(i.title)}" loading="lazy">`:""}</div>
+    <div class="body" style="min-width:0"${hasNote?` data-act="note"`:""}><div class="t"${tAttrs}>${adot}${timeHtml(i)}${hasNote?titleWithChev(i.title):esc(i.title)}${i.mins&&!wk?`<span class="dur">${durTxt(i.mins)}</span>`:""}</div>${meta?`<div class="meta">${meta}</div>`:""}${nOpen?`<div class="note" id="${nid}">${esc(i.note)}</div>`:""}${i.img?thumbHtml(i):""}</div>
     <button type="button" class="pen" data-act="edit" aria-label="编辑" aria-pressed="${openId===i.id}">✎</button>`;
   if (openId === i.id) html += editor(i);
   return html + `</li>`;
@@ -595,7 +638,7 @@ function renderWeek(){
     if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
     if (doneIt.length || skipIt.length){ const fo = foldOpen.has(d), sn = skipIt.length;
       const lbl = (doneIt.length ? `<span>已完成<b class="dn">${doneIt.length}</b>件</span>` : "") + (sn ? `<span class="sk">${doneIt.length?"· ":""}跳过 ${sn} 件</span>` : "");
-      h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk ${doneIt.length?"":"skf"}" aria-hidden="true">${doneIt.length?"✓":"–"}</span>${lbl}<span class="car" aria-hidden="true">▸</span></button>${fo?`<ul class="items doneList">${[...doneIt, ...skipIt].map(itemRow).join("")}</ul>`:""}</div>`; }
+      h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk ${doneIt.length?"":"skf"}" aria-hidden="true">${doneIt.length?"✓":"–"}</span>${lbl}<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${fo?`<ul class="items doneList">${[...doneIt, ...skipIt].map(itemRow).join("")}</ul>`:""}</div>`; }
     h += `</div>`;
   }
   const inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
@@ -714,6 +757,7 @@ function render(){
   document.querySelectorAll(".editor [id^='e-'], .bookline [id^='b-']").forEach(el => { if (el.type!=="file") keep[el.id] = el.value; });
   if (document.activeElement && document.activeElement.id && keep[document.activeElement.id]!==undefined) focusId = document.activeElement.id;
   renderInner();
+  adoptImgs($("#panel"));
   for (const [id,val] of Object.entries(keep)){ const el = document.getElementById(id); if (el) el.value = val; }
   if (focusId){ const el = document.getElementById(focusId); if (el) el.focus(); }
   afterRender();
@@ -774,8 +818,7 @@ document.addEventListener("click", async ev => {
   if (a.dataset.act==="note" && (ev.target.closest("a") || String(getSelection()||"").length)) return;
   if (a.dataset.act==="back"){ areaFilter=null; render(); return; }
   const li = a.closest("li.item"); const id = li && li.dataset.id; const it = items.find(x=>x.id===id);
-  if (it && a.dataset.act==="note"){ openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render();
-    const t = document.querySelector(`li.item[data-id="${CSS.escape(id)}"] .t[role="button"]`); if (t && ev.detail===0) t.focus({preventScroll:true}); return; }
+  if (it && a.dataset.act==="note"){ toggleNote(li, it); return; }
   if (!it || !db) return;
   const ref = db.doc("items/"+id);
   switch(a.dataset.act){
@@ -878,8 +921,16 @@ function demoDb(){
    {title:"买猫砂", kind:"buy", area:"pet"},
    {title:"给朋友寄生日卡", due:d(3), area:"people"},
    {title:"研究一下新的记账方法", area:"money"},
-   {title:"周末去公园野餐", kind:"fun", area:"partner"}
+   {title:"周末去公园野餐", kind:"fun", area:"partner"},
+   // 很长的标题：检查手机上不会把一行撑出屏幕
+   {title:"把家里所有电器的说明书扫描成电子版，按房间整理好放进共享文件夹（客厅、厨房、书房、卧室、阳台）", due:t, time:"21:00", approx:true, area:"home", note:"扫描 app 用手机自带的就行。文件名写清楚型号：Living-room-air-purifier-model-XYZ-1234-manual.pdf"},
+   // 带图片的「要买的」：展开备注时图片不应该闪
+   {title:"一盏暖光台灯", kind:"buy", area:"home", img:"demo-1", note:"要能调亮度，底座别太大"},
+   {title:"桌面收纳盒（白色、带小抽屉、能放下充电线和便利贴的那种）", kind:"buy", area:"home", img:"demo-2", note:"量过了：宽不超过 30 厘米"},
+   {title:"帆布包", kind:"buy", area:"me", img:"demo-3"}
   ].forEach(v => put("items", {status:"todo", kind:"task", note:"", created:d(-7), ...v}));
+  // 演示用的图片：直接放在内存里，不读真的图片库
+  [["demo-1","#BFD3EE",300,200],["demo-2","#F2C9B8",200,280],["demo-3","#CDE6D3",280,210]].forEach(([id,c,w,h]) => imgUrls.set(id, "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" rx="8" fill="${c}"/><circle cx="${w/2}" cy="${h/2}" r="${Math.min(w,h)/5}" fill="#fff" opacity=".7"/></svg>`)));
   put("routines", {title:"理发", everyDays:42, last:d(-40), bookLead:3, area:"me"});
   put("routines", {title:"给爸妈打电话", everyDays:7, last:d(-7), area:"people"});
   const snap = c => ({docs: Object.entries(store[c]).map(([id, v]) => ({id, data: () => ({...v})}))});
