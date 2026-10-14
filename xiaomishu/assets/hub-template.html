@@ -399,7 +399,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.7";
+const TEMPLATE_VERSION = "0.2.8";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -570,27 +570,27 @@ const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const todayStr = () => ymd(new Date());
 const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d+n); return ymd(x); };
 const diffDays = (a,b) => { const p=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}; return Math.round((p(b)-p(a))/86400000); };
-// 日子一律说「相对今天」：她对 10/16 这种绝对日期不敏感。所有给人看的日子都走 fmt()
-// 过去：今天/昨天/前天/N 天前(≤13)/N 周前/M 个月前；将来：今天/明天/后天/周X(本周一到周日内)/下周X/N 天后(≤13)/N 周后/M 个月后
+// 日子：近的说「相对今天」，远的直接写 M/D（她对近处的 10/16 不敏感，远处的写成「9 周后」又太虚）。所有给人看的日子都走 fmt()
+// 过去：今天/昨天/前天/N 天前(≤6)，再早写 M/D；将来：今天/明天/后天/周X(本周一到周日内)/下周X，再远写 M/D（不是今年才加年份）
 const WDN = ["日","一","二","三","四","五","六"];
+const absDay = s => { const [y, m, d] = String(s).slice(0,10).split("-").map(Number); return (y !== new Date().getFullYear() ? y + "/" : "") + m + "/" + d; };
 function relDay(s){
   const t = todayStr(), d = String(s).slice(0,10), n = diffDays(t, d);
   if (n === 0) return "今天";
-  if (n < 0){ const a = -n; return a===1 ? "昨天" : a===2 ? "前天" : a<=13 ? `${a} 天前` : a<63 ? `${Math.floor(a/7)} 周前` : `${Math.max(2, Math.round(a/30.4))} 个月前`; }
+  if (n < 0){ const a = -n; return a===1 ? "昨天" : a===2 ? "前天" : a<=6 ? `${a} 天前` : absDay(d); }
   if (n === 1) return "明天"; if (n === 2) return "后天";
   const [y,m,dd] = d.split("-").map(Number), wd = new Date(y,m-1,dd).getDay();
   const ti = (new Date().getDay() + 6) % 7;   // 今天是本周第几天（周一 = 0）
   if (n <= 6 - ti) return "周" + WDN[wd];
   if (n <= 13 - ti) return "下周" + WDN[wd];
-  return n<=13 ? `${n} 天后` : n<63 ? `${Math.floor(n/7)} 周后` : `${Math.max(2, Math.round(n/30.4))} 个月后`; }
+  return absDay(d); }
 const fmt = relDay;
-// 绝对日期（只在详情页、地方够的时候，小字淡色跟在相对日子后面）
-const absDay = s => { const [, m, d] = String(s).slice(0,10).split("-").map(Number); return m + "/" + d; };
-const absHtml = s => `<span class="abs"> · ${absDay(s)}</span>`;
+// 绝对日期（只在详情页、地方够的时候，小字淡色跟在相对日子后面；主标签本来就是 M/D 时不重复）
+const absHtml = s => relDay(s) === absDay(s) ? "" : `<span class="abs"> · ${absDay(s)}</span>`;
 // 过期：「过了 N 天」
 const lateTxt = s => `过了 ${diffDays(String(s).slice(0,10), todayStr())} 天`;
-// 等某一天：近的说「等到周五」，远的说「还有 9 周」
-function waitUntil(s){ const r = relDay(s); return /\d.*后$/.test(r) ? "还有 " + r.replace(/后$/, "") : "等到" + r; }
+// 等某一天：「等到周五」「等到下周二」「等到 12/20」
+function waitUntil(s){ const r = relDay(s); return /^\d/.test(r) ? "等到 " + r : "等到" + r; }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2000); }
 function durTxt(m){ m=Number(m)||0; if(!m) return ""; return m>=60 ? (m%60? `${Math.floor(m/60)} 小时 ${m%60} 分`:`${m/60} 小时`) : `${m} 分钟`; }
