@@ -239,6 +239,47 @@ details summary:hover{color:var(--accent)}
 .pmenu-list button:hover{background:var(--accent-soft)}
 .stagechip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;line-height:1.7}
 .stall{font-size:12.5px;color:var(--seal);background:var(--seal-soft);border-radius:10px;padding:5px 10px}
+/* 项目总览：按阶段分组的小方块，每块只有 emoji + 名字 + 进度条 */
+.pgrp{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pgh{display:flex;align-items:center;gap:6px;margin:6px 2px 0;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.pgh .count{font-family:var(--round);font-weight:500;font-size:12.5px;color:var(--faint);letter-spacing:0}
+details.pgrp > summary.pgh{list-style:none;cursor:pointer;padding:0;color:var(--muted)}
+details.pgrp > summary.pgh::-webkit-details-marker{display:none}
+details.pgrp > summary.pgh:hover{color:var(--accent)}
+.pgh .car{width:9px;height:9px;color:var(--faint);transition:transform .18s ease}
+details.pgrp[open] > summary .car{transform:rotate(90deg)}
+.ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;min-width:0}
+.ptile{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;aspect-ratio:5/4;min-height:118px;padding:12px 13px;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);color:var(--ink)}
+.ptile:hover{border-color:var(--accent-2)}
+.ptile:active{transform:scale(.98)}
+.ptile .pe{font-size:22px;line-height:1;height:26px;display:flex;align-items:center}
+.ptile .mono{width:26px;height:26px;border-radius:8px;display:inline-grid;place-items:center;font-size:13px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--paper))}
+.ptile .pn{font-size:14.5px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;min-width:0}
+.ptile .pfoot{margin-top:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.ptile .bar{display:block;height:6px}
+.ptile .bar span{min-width:6px}
+.ptile .bar.zero span{min-width:0}
+.ptile .pc{font-family:var(--round);font-weight:500;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptile .idle{position:absolute;top:12px;right:11px;font-size:11px;color:var(--faint);background:var(--paper-2);border-radius:999px;padding:0 7px;line-height:1.75;white-space:nowrap}
+.ptile.done .bar span{background:var(--ok)}
+@media (prefers-reduced-motion:no-preference){.ptile{transition:border-color .15s,transform .12s}}
+/* 单个项目的详情页 */
+.pdetail{gap:10px}
+.pdHead{display:flex;align-items:flex-start;gap:10px}
+.pdHead h2{flex:1;font-size:19px;line-height:1.4;letter-spacing:.03em;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.pdHead .pmenu{margin-left:0;flex:none;margin-top:-2px}
+.pdTags{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.stagechip.doing{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--accent-soft)}
+.stagechip.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:var(--ok-soft)}
+.pdFacts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:2px 0 0;font-size:14px;background:var(--paper-2);border-radius:12px;padding:10px 12px}
+.pdFacts dt{font-size:12.5px;color:var(--muted);white-space:nowrap;line-height:1.75}
+.pdFacts dd{margin:0;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.pdFacts dd .due{margin-left:6px;white-space:nowrap}
+.pdFacts dd.wy{white-space:pre-wrap;color:var(--ink)}
+.pdSteps .pgh{margin:4px 0 2px}
+li.item.cur{background:var(--accent-soft);border-radius:12px;margin-inline:-10px;max-width:none;width:calc(100% + 20px);padding-inline:10px;border-top-color:transparent;box-shadow:inset 3px 0 0 var(--accent)}
+li.item.cur + li.item{border-top-color:transparent}
+li.item.cur .t{font-weight:500}
 
 /* ── areas ── */
 .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
@@ -337,7 +378,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.3";
+const TEMPLATE_VERSION = "0.2.4";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -452,40 +493,53 @@ function placeInk(){ const nav = $("#tabs"), ink = $("#tabInk"), b = nav.querySe
   Object.assign(ink.style, {left:b.offsetLeft+"px", top:b.offsetTop+"px", width:b.offsetWidth+"px", height:b.offsetHeight+"px"});
   if (!inkReady){ ink.offsetWidth; requestAnimationFrame(()=>{ inkReady = true; ink.style.transition = ""; }); }
   else if (!reduceMotion()) ink.style.transition = ""; }
-// 点项目小标签：滑到「项目」页 → 展开项目和滚到那一步同时进行（一个连贯动作）→ 项目卡片和那一步轻轻闪一下
+// 项目页分两层：总览小方块 → 点一块进这个项目的详情页。projOpen = 正在看的项目 id（null 就是总览）
+// 进详情时往浏览器历史里压一条（网址不变，#demo 照样能用），按浏览器/手机的返回键就回到总览
+let projOpen = null, gridScrollY = 0;
+const scrollEl = () => document.scrollingElement || document.documentElement;
+function slidePanel(dir){ if (reduceMotion()) return;
+  $("#panel").animate([{transform:`translateX(${dir*28}px)`, opacity:.25},{transform:"none", opacity:1}], {duration:240, easing:"cubic-bezier(.2,.7,.3,1)"}); }
+function toTabsTop(){ const se = scrollEl(), navTop = $("#tabs").getBoundingClientRect().top + se.scrollTop - 8; if (se.scrollTop > navTop) se.scrollTop = Math.max(0, navTop); }
+function pushProj(pid){ try { history.pushState({hubProj:pid}, ""); } catch(e) {} }
+function openProject(pid){
+  if (!projects.some(p=>p.id===pid)) return;
+  if (!projOpen) gridScrollY = scrollEl().scrollTop;
+  projOpen = pid; openId = null; pushProj(pid);
+  render(); toTabsTop(); slidePanel(1);
+}
+function closeProject(fromPop){
+  if (!projOpen) return;
+  // 是我们压进去的那条历史：交给浏览器后退，popstate 里再关
+  if (!fromPop){ let st = null; try { st = history.state; } catch(e) {}
+    if (st && st.hubProj === projOpen){ history.back(); return; } }
+  projOpen = null; openId = null; render();
+  scrollEl().scrollTop = gridScrollY; slidePanel(-1);
+}
+addEventListener("popstate", ev => {
+  const pid = ev.state && ev.state.hubProj;
+  if (pid && projects.some(p=>p.id===pid)){
+    if (tab !== "projects"){ navTok++; switchTab("projects", () => { areaFilter = null; openId = null; projOpen = pid; }); }
+    else if (projOpen !== pid){ if (!projOpen) gridScrollY = scrollEl().scrollTop; projOpen = pid; openId = null; render(); toTabsTop(); slidePanel(1); }
+  } else if (projOpen) closeProject(true);
+});
+// 点项目小标签：滑到「项目」页、直接打开那个项目的详情，滚到那一步并轻轻闪一下
 function goProject(pid, iid){ return goProjectSeq(pid, iid); }
 async function goProjectSeq(pid, iid){
   const p = projects.find(x=>x.id===pid); if (!p) return;
-  const tok = ++navTok, rm = reduceMotion(), wasOpen = openProjs.has(pid);
-  const find = () => { const det = document.querySelector(`#panel details[data-pid="${pid}"]`); if (!det) return {};
-    return {det, card: det.closest(".box.proj") || det.closest("li.item") || det, row: iid ? det.querySelector(`li.item[data-id="${iid}"]`) : null}; };
+  const tok = ++navTok;
   const prep = () => { areaFilter = null; openId = null;
     if (q){ q = ""; $("#search").value = ""; $("#findBody").hidden = true; $("#findBtn").setAttribute("aria-expanded","false"); }
-    if (p.stage==="done") archiveOpen = true;
-    openProjs.add(pid); };
-  // 在屏幕外按「展开后」的样子量好那一步最终的位置，再把项目收回到只露标题，等滑进来后再展开
-  const measure = () => { if (rm) return {}; const f = find(); if (!f.det) return {};
-    const se = document.scrollingElement || document.documentElement, tg = f.row || f.card, r = tg.getBoundingClientRect();
-    const target = se.scrollTop + r.top - (f.row ? (innerHeight - r.height)/2 : 16);
-    const finalH = $("#panel").offsetHeight;
-    if (wasOpen) return {target, finalH};
-    const fullH = f.det.offsetHeight, sh = f.det.querySelector("summary").offsetHeight;
-    f.det.style.height = sh + "px"; f.det.style.overflow = "hidden";
-    return {target, finalH, fullH, sh, det: f.det}; };
-  const info = await switchTab("projects", prep, {keepScroll:true, keepLock:true, afterRender: measure});
-  if (tok !== navTok){ anchorOff(false); return; }
-  if (rm){ const {card, row} = find(); const tg = row || card; if (tg) tg.scrollIntoView({block: row ? "center" : "start"}); pulse(card, true); pulse(row, false); return; }
-  if (info.target === undefined){ releasePanel(); anchorOff(false); return; }
-  if (!info.det || !info.det.isConnected){ const d = find().det; if (d && info.det){ d.style.height = ""; d.style.overflow = ""; } info.det = null; }
-  const $panel = $("#panel"); $panel.style.minHeight = Math.max($panel.offsetHeight, info.finalH) + "px";
-  const steps = [easedScrollTo(info.target, 600)];
-  if (info.det){ const det = info.det;
-    const an = det.animate([{height:info.sh+"px"},{height:info.fullH+"px"}], {duration:420, easing:"cubic-bezier(.45,0,.25,1)", fill:"forwards"});
-    steps.push(an.finished.then(()=>{ det.style.height = ""; det.style.overflow = ""; an.cancel(); }).catch(()=>{})); }
-  await Promise.all(steps);
-  releasePanel(); anchorOff(false);
+    if (!projOpen) gridScrollY = 0;
+    if (projOpen !== pid){ projOpen = pid; pushProj(pid); } };
+  await switchTab("projects", prep);
   if (tok !== navTok) return;
-  const {card, row} = find(); pulse(card, true); pulse(row, false);
+  const row = iid ? document.querySelector(`#panel .pdetail li.item[data-id="${iid}"]`) : null;
+  if (!row) return;
+  const r = row.getBoundingClientRect();
+  if (r.top < 0 || r.bottom > innerHeight - 16){
+    if (reduceMotion()) row.scrollIntoView({block:"center"});
+    else await easedScrollTo(scrollEl().scrollTop + r.top - (innerHeight - r.height)/2, 500); }
+  if (tok === navTok) pulse(row, false);
 }
 const reduceMotion = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){ return false; } };
 
@@ -645,32 +699,68 @@ function renderWeek(){
   h += `<div class="status">收件箱里还有 ${inboxN} 件没排日子。</div>`;
   return h;
 }
-function projCard(p){
-  const t=todayStr(), {st,done,next,moved}=projInfo(p);
+// 项目标题开头的 emoji 单独拿出来放在方块左上角；没有 emoji 就用名字第一个字做个小方章
+const EMOJI_RE = /^((?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic})(?:️|⃣|\p{Emoji_Modifier}|‍\p{Extended_Pictographic}️?)*)\s*/u;
+function splitEmoji(t){ t = String(t ?? ""); const m = t.match(EMOJI_RE); return m && m[0].length < t.length ? {e:m[1], n:t.slice(m[0].length)} : {e:"", n:t}; }
+const PSTAGE = {doing:"进行中", paused:"暂停", idea:"想法", done:"已完成"};
+const md = s => { const [, m, d] = String(s).slice(0,10).split("-").map(Number); return m + "/" + d; };
+const agoTxt = n => n <= 0 ? "今天" : n === 1 ? "昨天" : `${n} 天前`;
+// 多久没动：最近做完的那一步 / lastMoved；都没有就从开工那天算
+function idleDays(p, moved){ const ref = moved || p.started || null; return ref ? diffDays(String(ref).slice(0,10), todayStr()) : null; }
+function projTile(p){
+  const {st, done, moved} = projInfo(p), {e, n} = splitEmoji(p.title);
   const pct = st.length ? Math.round(done.length/st.length*100) : 0;
-  const idle = moved ? diffDays(moved,t) : null;
+  const idle = p.stage==="doing" ? idleDays(p, moved) : null, stale = idle !== null && idle >= 5;
+  const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
+    : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
+  const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${stale ? `，${idle} 天没动` : ""}`;
+  return `<button type="button" class="ptile ${p.stage==="done"?"done":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${stale?`<span class="idle" aria-hidden="true">${idle} 天没动</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>
+    <span class="pfoot" aria-hidden="true"><span class="bar ${pct===0?"zero":""}"><span style="width:${pct}%"></span></span><span class="pc">${st.length?`${done.length}/${st.length}`:"没拆步骤"}</span></span></button>`;
+}
+function projDetail(p){
+  const t = todayStr(), {st, done, next, moved} = projInfo(p);
+  const pct = st.length ? Math.round(done.length/st.length*100) : 0;
+  const idle = moved ? diffDays(String(moved).slice(0,10), t) : null;
   const stalled = p.stage==="doing" && (idle===null ? (p.started && diffDays(p.started,t)>=14) : idle>=14);
-  const items3 = p.stage==="idea" ? `<button data-pact="doing">开工</button>` : p.stage==="doing" ? `<button data-pact="paused">先放着</button><button data-pact="done">标成完成</button>` : `<button data-pact="doing">接着做</button>`;
-  const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${items3}</div></details>`;
-  return `<div class="box proj" data-pid="${p.id}"><div class="ph"><h2>${esc(p.title)}</h2>${stamp(p.area)}${p.stage!=="doing"?`<span class="stagechip">${STAGES[p.stage]||""}</span>`:""}${menu}</div>
-    ${st.length?`<div class="prog"><div class="bar ${pct===0?"zero":""}" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div><span class="pct">${done.length}/${st.length}<small>步</small></span></div>
-    <div class="status">${moved?(idle===0?"今天推进了":`上次推进：${idle} 天前（${fmt(moved)}）`):"还没开始"}</div>${stalled?`<div class="stall">停住 ${idle??diffDays(p.started,t)} 天了：继续，还是先放着？</div>`:""}`:`<div class="status">还没拆步骤</div>`}
-    ${next?`<div class="nextstep"><span class="lbl">下一步</span><b>${esc(next.title)}</b>${next.due?`<span class="due">${fmt(next.due)}</span>`:`<span class="due">还没排日子</span>`}</div>`:st.length?`<div class="nextstep"><span class="lbl">步骤都做完了</span></div>`:""}
-    ${p.eta?`<div class="status">预计：${esc(p.eta)}</div>`:""}
-    ${p.why?`<div class="note">${esc(p.why)}</div>`:""}
-    <details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>全部步骤</summary><ul class="items">${st.map(itemRow).join("")}</ul>
-      <form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></details>
+  const acts = p.stage==="idea" ? `<button data-pact="doing">开工</button>` : p.stage==="doing" ? `<button data-pact="paused">先放着</button><button data-pact="done">标成完成</button>` : `<button data-pact="doing">接着做</button>`;
+  const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${acts}</div></details>`;
+  const lastTxt = moved ? `${md(moved)} · ${agoTxt(idle)}` : "还没开始";
+  const late = next && next.due && next.due < t;
+  const nextTxt = next ? `<b>第 ${next.step ?? "?"} 步 · ${esc(next.title)}</b><span class="due ${late?"late":""}">${next.due ? fmt(next.due) + (next.time ? ` ${esc(next.time)}` : "") + (late ? " · 过期了" : "") : "还没排日子"}</span>`
+    : st.length ? "步骤都做完了" : `<span class="due">还没拆步骤</span>`;
+  const facts = `<dt>上次推进</dt><dd>${lastTxt}</dd><dt>下一步</dt><dd>${nextTxt}</dd>`
+    + (p.why ? `<dt>为什么做</dt><dd class="wy">${esc(p.why)}</dd>` : "")
+    + (p.eta ? `<dt>预计</dt><dd>${esc(p.eta)}</dd>` : "");
+  // 步骤用和别处一样的行（勾选、✎、备注都一样）；现在这一步高亮
+  const list = st.map(i => { const h = itemRow(i); return next && i.id===next.id ? h.replace('<li class="item ', '<li class="item cur ') : h; }).join("");
+  return `<button type="button" class="btn" data-pback style="align-self:flex-start">← 全部项目</button>
+    <div class="box pdetail" data-pid="${p.id}">
+      <div class="pdHead"><h2>${esc(p.title)}</h2>${menu}</div>
+      <div class="pdTags"><span class="stagechip ${p.stage||"idea"}">${PSTAGE[p.stage||"idea"]||""}</span>${stamp(p.area)}</div>
+      ${st.length?`<div class="prog"><div class="bar ${pct===0?"zero":""}" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div><span class="pct">${done.length}/${st.length}<small>步</small></span></div>`:""}
+      <dl class="pdFacts">${facts}</dl>
+      ${stalled?`<div class="stall">停住 ${idle??diffDays(p.started,t)} 天了：继续，还是先放着？</div>`:""}
+      <div class="pdSteps"><div class="pgh">全部步骤 <span class="count">${st.length}</span></div>
+        ${st.length?`<ul class="items">${list}</ul>`:`<div class="empty">还没拆步骤，在下面加第一步。</div>`}
+        <form class="capture addstep" data-pid="${p.id}" style="margin-top:8px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></div>
     </div>`;
 }
+const PCAR = '<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function renderProjects(){
+  if (projOpen){ const p = projects.find(x=>x.id===projOpen); if (p) return projDetail(p); projOpen = null; }
   const by = s => projects.filter(p=>(p.stage||"idea")===s);
-  const doing = by("doing"), idea = by("idea"), paused = by("paused"), done = by("done");
-  return `<div class="status">进行中的最好不超过 3 个。做项目的时间在「本周」里排成时间块。</div>`
-    + (doing.length ? doing.map(projCard).join("") : `<div class="empty">还没有进行中的项目。</div>`)
-    + `<div class="box"><h2>点子池 <span class="count">${idea.length}</span></h2>${idea.length?`<ul class="items">${idea.map(p=>`<li class="item"><span class="dot" style="background:var(--a-project);margin-top:8px"></span><div style="min-width:0"><div class="t">${esc(p.title)}</div><div class="meta">${stamp(p.area)}</div>${p.eta?`<div class="status">预计：${esc(p.eta)}</div>`:""}${p.why?`<div class="note">${esc(p.why)}</div>`:""}${(()=>{ const st=projSteps(p.id); return `<details data-pid="${p.id}" ${openProjs.has(p.id)?"open":""}><summary>${st.length?`步骤（${st.length}）`:"加步骤"}</summary>${st.length?`<ul class="items">${st.map(itemRow).join("")}</ul>`:""}<form class="capture addstep" data-pid="${p.id}" style="margin-top:6px"><input placeholder="加一步" aria-label="给这个项目加一步"><button class="btn" type="submit">加</button></form></details>`; })()}</div><span data-pid="${p.id}"><button class="btn sm" data-pact="doing">开工</button></span></li>`).join("")}</ul>`:`<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
-      <form class="capture addidea" style="margin-top:8px"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
-    + (paused.length ? `<div class="box"><h2>先放着 <span class="count">${paused.length}</span></h2><div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">${paused.map(projCard).join("")}</div></div>` : "")
-    + (done.length ? `<details class="box" data-archive ${archiveOpen?"open":""}><summary>归档 · 完成了的项目（${done.length}）</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">${done.map(projCard).join("")}</div></details>` : "");
+  // 进行中：最久没动的排最前
+  const staleKey = p => String(projInfo(p).moved || p.started || p.created || "").slice(0,10);
+  const doing = by("doing").sort((a,b)=>{ const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; });
+  const paused = by("paused"), idea = by("idea"), done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
+  const tiles = list => `<div class="ptiles">${list.map(projTile).join("")}</div>`;
+  const head = (lbl, n) => `<div class="pgh">${lbl} <span class="count">${n}</span></div>`;
+  return `<div class="status">进行中的最好不超过 3 个。点一个项目看全部步骤。</div>`
+    + `<div class="pgrp">${head("进行中", doing.length)}${doing.length ? tiles(doing) : `<div class="empty">还没有进行中的项目。</div>`}</div>`
+    + (paused.length ? `<div class="pgrp">${head("暂停", paused.length)}${tiles(paused)}</div>` : "")
+    + `<div class="pgrp">${head("想法", idea.length)}${idea.length ? tiles(idea) : `<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
+      <form class="capture addidea"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
+    + (done.length ? `<details class="pgrp" data-archive ${archiveOpen?"open":""}><summary class="pgh">已完成 <span class="count">${done.length}</span>${PCAR}</summary>${tiles(done)}</details>` : "");
 }
 function areaState(k){
   const t=todayStr(), op=open().filter(i=>i.area===k && i.status!=="someday" && (i.kind||"task")!=="idea");
@@ -783,7 +873,10 @@ async function write(ref, fn, okMsg){
 
 document.addEventListener("click", async ev => {
   const tb = ev.target.closest("#tabs button");
-  if (tb){ navTok++; switchTab(tb.dataset.tab, () => { areaFilter=null; q=""; $("#search").value=""; openId=null; }); return; }
+  if (tb){ navTok++; switchTab(tb.dataset.tab, () => { areaFilter=null; q=""; $("#search").value=""; openId=null; projOpen=null; }); return; }
+  const po = ev.target.closest("[data-popen]");
+  if (po){ openProject(po.dataset.popen); return; }
+  if (ev.target.closest("[data-pback]")){ closeProject(); return; }
   const gp = ev.target.closest("[data-goproj]");
   if (gp){ ev.stopPropagation(); const li = gp.closest("li.item"); goProject(gp.dataset.goproj, li && li.dataset.id); return; }
   const fb = ev.target.closest("[data-fold]");
@@ -903,10 +996,10 @@ function demoDb(){
   const t = todayStr(), d = n => addDays(t, n), store = {items:{}, routines:{}, projects:{}, meta:{}}, subs = {items:[], routines:[], projects:[], meta:[]};
   let seq = 0; const put = (c, v, id) => { id = id || (c[0] + (++seq)); store[c][id] = v; return id; };
   put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
-  const pj = put("projects", {title:"整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
+  const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
-  put("projects", {title:"学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
-  put("projects", {title:"换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
+  put("projects", {title:"🎸 学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
+  put("projects", {title:"📱 换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
   [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
    {title:"挑一盏台灯", project:pj, step:2, due:t, area:"home", mins:30},
    {title:"把旧书捐掉", project:pj, step:3, due:d(2), area:"home"},
