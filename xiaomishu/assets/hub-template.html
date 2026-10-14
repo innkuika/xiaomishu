@@ -275,6 +275,8 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .ptile.waiting .bar{background:var(--line)}
 .ptile.waiting .bar span{background:var(--faint)}
 .ptile.waiting .pc{color:var(--faint)}
+.pwait .pwsrc{color:var(--faint);font-size:12px;margin-left:4px}
+.chip.wtc{background:var(--paper-2);color:var(--muted);border:1px dashed var(--line);line-height:1.6}
 .pwait{font-size:13px;color:var(--muted);background:var(--paper-2);border:1px dashed var(--line);border-radius:10px;padding:5px 10px;overflow-wrap:anywhere;word-break:break-word}
 .waitform{margin-top:-2px}
 @media (prefers-reduced-motion:no-preference){.ptile{transition:border-color .15s,transform .12s}}
@@ -393,7 +395,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.5";
+const TEMPLATE_VERSION = "0.2.6";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -629,6 +631,7 @@ function itemRow(i){
   const locked = isLocked(i);
   const pj = projOf(i); if (pj && tab!=="projects") metaBits.push(`<button type="button" class="chip pj go ${locked?"wait":""}" data-goproj="${pj.id}" aria-label="去「项目」看 ${esc(pj.title)}"><span class="pn">${esc(pj.title)}</span><span class="ps">· 第 ${i.step||"?"} 步${locked?" · 等上一步":""}</span><span class="gochev" aria-hidden="true">›</span></button>`);
   else if (locked) metaBits.push(`<span class="chip pj wait">第 ${i.step||"?"} 步 · 等上一步</span>`);
+  const sw = !wk && stepWait(i); if (sw) metaBits.push(`<span class="chip wtc">⏳ ${esc(sw)}</span>`);
   if (!wk && i.kind && i.kind!=="task") metaBits.push(`<span class="kind">${KINDS[i.kind]}</span>`);
   if (i.due && !wk) metaBits.push(`<span class="due ${late?"late":""}">${fmt(i.due)}${late?" · 过期了":""}</span>`);
   if (i.due && wk && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
@@ -659,6 +662,8 @@ function editor(i){
     <label>类型<select id="e-kind">${kindOpts}</select></label>
     <label>属于哪个项目<select id="e-proj"><option value="">（不属于）</option>${projects.filter(p=>p.stage!=="done").map(p=>`<option value="${p.id}" ${i.project===p.id?"selected":""}>${esc(p.title)}</option>`).join("")}</select></label>
     <label>第几步<input id="e-step" type="number" min="1" step="1" value="${i.step||""}"></label>
+    ${i.project || i.waitFor || i.notBefore ? `<label>等什么（可不填）<input id="e-waitfor" value="${esc(i.waitFor||"")}" placeholder="比如「等体检报告」"></label>
+    <label>不早于（这天前做不了）<input id="e-notbefore" type="date" value="${i.notBefore||""}"></label>` : ""}
     <label style="grid-column:1/-1">备注<textarea id="e-note">${esc(i.note||"")}</textarea></label>
     ${assetsNs?`<label>图片（截图、照片）<input id="e-img" type="file" accept="image/*"></label>${i.img?`<button class="btn" data-act="rmimg" style="align-self:end">去掉图片</button>`:""}`:""}
     <div class="row">
@@ -723,17 +728,24 @@ const agoTxt = n => n <= 0 ? "今天" : n === 1 ? "昨天" : `${n} 天前`;
 // 多久没动：最近做完的那一步 / lastMoved；都没有就从开工那天算
 function idleDays(p, moved){ const ref = moved || p.started || null; return ref ? diffDays(String(ref).slice(0,10), todayStr()) : null; }
 // waitingFor：在等别人/别的事（如「等体检报告」）。空字符串或没有 = 不在等
+// 手动标的（项目级 waitingFor，覆盖用）
 const waitOf = p => String(p.waitingFor || "").trim();
-const isWaiting = p => p.stage==="doing" && !!waitOf(p);
+// 一步在等什么：waitFor（「等体检报告」）或 notBefore（这天之前做不了）；没在等就是 ""
+function stepWait(i){ if (!i || isClosed(i)) return "";
+  const w = String(i.waitFor || "").trim(); if (w) return w;
+  return i.notBefore && i.notBefore > todayStr() ? `等到 ${md(i.notBefore)}` : ""; }
+// 项目在等什么：手动标的优先，否则看现在这一步（第一件没做完的）。勾掉一步后自动重新算
+function projWait(p){ return waitOf(p) || stepWait(projInfo(p).next); }
+const isWaiting = p => p.stage==="doing" && !!projWait(p);
 let waitEdit = null;   // 正在填「在等什么」的项目 id
 function projTile(p){
   const {st, done, moved, next} = projInfo(p), {e, n} = splitEmoji(p.title), wt = isWaiting(p);
   const pct = st.length ? Math.round(done.length/st.length*100) : 0;
   const idle = p.stage==="doing" && !wt ? idleDays(p, moved) : null, stale = idle !== null && idle >= 5;
-  const tag = wt ? `<span class="ptag wt" aria-hidden="true">⏳ ${esc(waitOf(p))}</span>` : p.stage==="doing" && next ? `<span class="ptag can" aria-hidden="true">能做</span>` : "";
+  const tag = wt ? `<span class="ptag wt" aria-hidden="true">⏳ ${esc(projWait(p))}</span>` : p.stage==="doing" && next ? `<span class="ptag can" aria-hidden="true">能做</span>` : "";
   const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
     : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
-  const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${waitOf(p)}` : ""}${stale ? `，${idle} 天没动` : ""}`;
+  const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${stale ? `，${idle} 天没动` : ""}`;
   return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${stale?`<span class="idle" aria-hidden="true">${idle} 天没动</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>${tag}
     <span class="pfoot" aria-hidden="true"><span class="bar ${pct===0?"zero":""}"><span style="width:${pct}%"></span></span><span class="pc">${st.length?`${done.length}/${st.length}`:"没拆步骤"}</span></span></button>`;
 }
@@ -745,7 +757,7 @@ function projDetail(p){
   const acts = p.stage==="idea" ? `<button data-pact="doing">开工</button>` : p.stage==="doing" ? `<button data-pact="paused">先放着</button><button data-pact="done">标成完成</button>` : `<button data-pact="doing">接着做</button>`;
   const wf = waitOf(p), wacts = p.stage==="done" ? "" : `<button data-pwait="set">标成等待中…</button>${wf?`<button data-pwait="clear">不用等了</button>`:""}`;
   const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${acts}${wacts}</div></details>`;
-  const waitHtml = (wf ? `<div class="pwait">⏳ 等待中：${esc(wf)}</div>` : "")
+  const pw = projWait(p), waitHtml = (pw && p.stage!=="done" ? `<div class="pwait">⏳ 等待中：${esc(pw)}${wf ? "" : `<span class="pwsrc">（第 ${next.step ?? "?"} 步）</span>`}</div>` : "")
     + (waitEdit===p.id ? `<form class="capture waitform" data-pid="${p.id}"><input id="w-reason" value="${esc(wf)}" placeholder="在等什么？比如「等体检报告」" aria-label="在等什么"><button class="btn primary" type="submit">存好</button><button class="btn" type="button" data-pwait="cancel">算了</button></form>` : "");
   const lastTxt = moved ? `${md(moved)} · ${agoTxt(idle)}` : "还没开始";
   const late = next && next.due && next.due < t;
@@ -971,6 +983,7 @@ document.addEventListener("click", async ev => {
     case "del": openId=null; await write(ref, r=>r.delete(), "删掉了"); break;
     case "save": {
       const v = {title:$("#e-title").value.trim()||it.title, due:$("#e-due").value||null, time:$("#e-time").value||null, mins:Number($("#e-mins").value)||null, area:$("#e-area").value||null, kind:$("#e-kind").value, note:$("#e-note").value.trim(), fixed:$("#e-fixed").value==="1", approx:$("#e-fixed").value==="approx", project:$("#e-proj").value||null, step:Number($("#e-step").value)||null};
+      if ($("#e-waitfor")){ v.waitFor = $("#e-waitfor").value.trim(); v.notBefore = $("#e-notbefore").value || null; }
       const f = $("#e-img") && $("#e-img").files[0];
       if (f && assetsNs){ try { const up = await assetsNs.upload(f); v.img = up.id; } catch(e){ toast(e && e.code==="too_large" ? "图片太大了" : "图片没传上"); } }
       openId=null; await write(ref, r=>r.update(v), "存好了"); break; }
@@ -1032,13 +1045,13 @@ function demoDb(){
   let seq = 0; const put = (c, v, id) => { id = id || (c[0] + (++seq)); store[c][id] = v; return id; };
   put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
   const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
-  const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12), waitingFor:"等体检报告"});
+  const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
   put("projects", {title:"🎸 学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
   put("projects", {title:"📱 换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
   [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
    {title:"约体检", project:wp, step:1, status:"done", doneAt:d(-9), area:"health"},
-   {title:"看报告、约复诊", project:wp, step:2, area:"health"},
+   {title:"看报告、约复诊", project:wp, step:2, area:"health", waitFor:"等体检报告"},
    {title:"挑一盏台灯", project:pj, step:2, due:t, area:"home", mins:30},
    {title:"把旧书捐掉", project:pj, step:3, due:d(2), area:"home"},
    {title:"牙医复查", due:t, time:"16:30", fixed:true, area:"health", mins:60},
