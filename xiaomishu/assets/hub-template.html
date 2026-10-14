@@ -264,9 +264,12 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .ptile.done .bar span{background:var(--ok)}
 /* 标题两行 + 小签放不下时让方块长高，不压扁标题 */
 .ptile > *{flex-shrink:0}
-/* 小签：等待中 / 能做，放在标题下面的空处，小而安静 */
+/* 小签：等待中 / 下一步，放在标题下面的空处，小而安静 */
 .ptile .ptag{align-self:flex-start;max-width:100%;font-size:11.5px;line-height:1.75;padding:0 8px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.ptile .ptag.can{color:var(--accent);background:var(--accent-soft)}
+.ptile .ptag.can{color:var(--accent);background:var(--accent-soft);display:inline-flex;gap:4px}
+/* 下一步小签：步骤名太长就省略，日子总是露出来 */
+.ptile .ptag.can .nt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ptile .ptag.can .nd{flex:none}
 .ptile .ptag.wt{color:var(--muted);border:1px dashed var(--line);background:var(--paper);line-height:1.6}
 /* 等待中：整块调淡、进度条变灰，球不在自己这边 */
 .ptile.waiting{background:var(--paper-2);box-shadow:none}
@@ -275,6 +278,7 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .ptile.waiting .bar{background:var(--line)}
 .ptile.waiting .bar span{background:var(--faint)}
 .ptile.waiting .pc{color:var(--faint)}
+.abs{color:var(--faint);font-size:.88em;font-weight:400}
 .pwait .pwsrc{color:var(--faint);font-size:12px;margin-left:4px}
 .chip.wtc{background:var(--paper-2);color:var(--muted);border:1px dashed var(--line);line-height:1.6}
 .pwait{font-size:13px;color:var(--muted);background:var(--paper-2);border:1px dashed var(--line);border-radius:10px;padding:5px 10px;overflow-wrap:anywhere;word-break:break-word}
@@ -395,7 +399,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.6";
+const TEMPLATE_VERSION = "0.2.7";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -566,7 +570,27 @@ const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const todayStr = () => ymd(new Date());
 const addDays = (s,n) => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d+n); return ymd(x); };
 const diffDays = (a,b) => { const p=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}; return Math.round((p(b)-p(a))/86400000); };
-const fmt = s => { const [y,m,d]=s.split("-").map(Number); const x=new Date(y,m-1,d); return (m)+"/"+d+" "+WD[x.getDay()]; };
+// 日子一律说「相对今天」：她对 10/16 这种绝对日期不敏感。所有给人看的日子都走 fmt()
+// 过去：今天/昨天/前天/N 天前(≤13)/N 周前/M 个月前；将来：今天/明天/后天/周X(本周一到周日内)/下周X/N 天后(≤13)/N 周后/M 个月后
+const WDN = ["日","一","二","三","四","五","六"];
+function relDay(s){
+  const t = todayStr(), d = String(s).slice(0,10), n = diffDays(t, d);
+  if (n === 0) return "今天";
+  if (n < 0){ const a = -n; return a===1 ? "昨天" : a===2 ? "前天" : a<=13 ? `${a} 天前` : a<63 ? `${Math.floor(a/7)} 周前` : `${Math.max(2, Math.round(a/30.4))} 个月前`; }
+  if (n === 1) return "明天"; if (n === 2) return "后天";
+  const [y,m,dd] = d.split("-").map(Number), wd = new Date(y,m-1,dd).getDay();
+  const ti = (new Date().getDay() + 6) % 7;   // 今天是本周第几天（周一 = 0）
+  if (n <= 6 - ti) return "周" + WDN[wd];
+  if (n <= 13 - ti) return "下周" + WDN[wd];
+  return n<=13 ? `${n} 天后` : n<63 ? `${Math.floor(n/7)} 周后` : `${Math.max(2, Math.round(n/30.4))} 个月后`; }
+const fmt = relDay;
+// 绝对日期（只在详情页、地方够的时候，小字淡色跟在相对日子后面）
+const absDay = s => { const [, m, d] = String(s).slice(0,10).split("-").map(Number); return m + "/" + d; };
+const absHtml = s => `<span class="abs"> · ${absDay(s)}</span>`;
+// 过期：「过了 N 天」
+const lateTxt = s => `过了 ${diffDays(String(s).slice(0,10), todayStr())} 天`;
+// 等某一天：近的说「等到周五」，远的说「还有 9 周」
+function waitUntil(s){ const r = relDay(s); return /\d.*后$/.test(r) ? "还有 " + r.replace(/后$/, "") : "等到" + r; }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2000); }
 function durTxt(m){ m=Number(m)||0; if(!m) return ""; return m>=60 ? (m%60? `${Math.floor(m/60)} 小时 ${m%60} 分`:`${m/60} 小时`) : `${m} 分钟`; }
@@ -633,8 +657,8 @@ function itemRow(i){
   else if (locked) metaBits.push(`<span class="chip pj wait">第 ${i.step||"?"} 步 · 等上一步</span>`);
   const sw = !wk && stepWait(i); if (sw) metaBits.push(`<span class="chip wtc">⏳ ${esc(sw)}</span>`);
   if (!wk && i.kind && i.kind!=="task") metaBits.push(`<span class="kind">${KINDS[i.kind]}</span>`);
-  if (i.due && !wk) metaBits.push(`<span class="due ${late?"late":""}">${fmt(i.due)}${late?" · 过期了":""}</span>`);
-  if (i.due && wk && late) metaBits.push(`<span class="due late">过期 ${-diffDays(t,i.due)} 天</span>`);
+  if (i.due && !wk) metaBits.push(`<span class="due ${late?"late":""}">${late ? lateTxt(i.due) : fmt(i.due)}${tab==="projects" && projOpen ? absHtml(i.due) : ""}</span>`);
+  if (i.due && wk && late) metaBits.push(`<span class="due late">${lateTxt(i.due)}</span>`);
   const adot = wk && AREAS[i.area] ? `<span class="adot" style="--c:var(${AREAS[i.area].c})" title="${AREAS[i.area].name}"></span>` : "";
   const sk = i.status==="skipped", dn = i.status==="done";
   if (sk) metaBits.unshift(`<span class="skipchip">跳过</span>`);
@@ -723,8 +747,6 @@ function renderWeek(){
 const EMOJI_RE = /^((?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic})(?:️|⃣|\p{Emoji_Modifier}|‍\p{Extended_Pictographic}️?)*)\s*/u;
 function splitEmoji(t){ t = String(t ?? ""); const m = t.match(EMOJI_RE); return m && m[0].length < t.length ? {e:m[1], n:t.slice(m[0].length)} : {e:"", n:t}; }
 const PSTAGE = {doing:"进行中", paused:"暂停", idea:"想法", done:"已完成"};
-const md = s => { const [, m, d] = String(s).slice(0,10).split("-").map(Number); return m + "/" + d; };
-const agoTxt = n => n <= 0 ? "今天" : n === 1 ? "昨天" : `${n} 天前`;
 // 多久没动：最近做完的那一步 / lastMoved；都没有就从开工那天算
 function idleDays(p, moved){ const ref = moved || p.started || null; return ref ? diffDays(String(ref).slice(0,10), todayStr()) : null; }
 // waitingFor：在等别人/别的事（如「等体检报告」）。空字符串或没有 = 不在等
@@ -733,7 +755,7 @@ const waitOf = p => String(p.waitingFor || "").trim();
 // 一步在等什么：waitFor（「等体检报告」）或 notBefore（这天之前做不了）；没在等就是 ""
 function stepWait(i){ if (!i || isClosed(i)) return "";
   const w = String(i.waitFor || "").trim(); if (w) return w;
-  return i.notBefore && i.notBefore > todayStr() ? `等到 ${md(i.notBefore)}` : ""; }
+  return i.notBefore && i.notBefore > todayStr() ? waitUntil(i.notBefore) : ""; }
 // 项目在等什么：手动标的优先，否则看现在这一步（第一件没做完的）。勾掉一步后自动重新算
 function projWait(p){ return waitOf(p) || stepWait(projInfo(p).next); }
 const isWaiting = p => p.stage==="doing" && !!projWait(p);
@@ -742,7 +764,7 @@ function projTile(p){
   const {st, done, moved, next} = projInfo(p), {e, n} = splitEmoji(p.title), wt = isWaiting(p);
   const pct = st.length ? Math.round(done.length/st.length*100) : 0;
   const idle = p.stage==="doing" && !wt ? idleDays(p, moved) : null, stale = idle !== null && idle >= 5;
-  const tag = wt ? `<span class="ptag wt" aria-hidden="true">⏳ ${esc(projWait(p))}</span>` : p.stage==="doing" && next ? `<span class="ptag can" aria-hidden="true">能做</span>` : "";
+  const tag = wt ? `<span class="ptag wt" aria-hidden="true">⏳ ${esc(projWait(p))}</span>` : p.stage==="doing" && next ? `<span class="ptag can" aria-hidden="true"><span class="nt">→ ${esc(splitEmoji(next.title).n)}</span>${next.due ? `<span class="nd ${next.due < todayStr() ? "lateTxt" : ""}">· ${next.due < todayStr() ? lateTxt(next.due) : relDay(next.due)}</span>` : ""}</span>` : "";
   const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
     : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
   const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${stale ? `，${idle} 天没动` : ""}`;
@@ -759,9 +781,9 @@ function projDetail(p){
   const menu = `<details class="pmenu"><summary aria-label="更多操作">⋯</summary><div class="pmenu-list">${acts}${wacts}</div></details>`;
   const pw = projWait(p), waitHtml = (pw && p.stage!=="done" ? `<div class="pwait">⏳ 等待中：${esc(pw)}${wf ? "" : `<span class="pwsrc">（第 ${next.step ?? "?"} 步）</span>`}</div>` : "")
     + (waitEdit===p.id ? `<form class="capture waitform" data-pid="${p.id}"><input id="w-reason" value="${esc(wf)}" placeholder="在等什么？比如「等体检报告」" aria-label="在等什么"><button class="btn primary" type="submit">存好</button><button class="btn" type="button" data-pwait="cancel">算了</button></form>` : "");
-  const lastTxt = moved ? `${md(moved)} · ${agoTxt(idle)}` : "还没开始";
+  const lastTxt = moved ? `${relDay(moved)}${absHtml(moved)}` : "还没开始";
   const late = next && next.due && next.due < t;
-  const nextTxt = next ? `<b>第 ${next.step ?? "?"} 步 · ${esc(next.title)}</b><span class="due ${late?"late":""}">${next.due ? fmt(next.due) + (next.time ? ` ${esc(next.time)}` : "") + (late ? " · 过期了" : "") : "还没排日子"}</span>`
+  const nextTxt = next ? `<b>第 ${next.step ?? "?"} 步 · ${esc(next.title)}</b><span class="due ${late?"late":""}">${next.due ? (late ? lateTxt(next.due) : fmt(next.due)) + (next.time ? ` ${esc(next.time)}` : "") + absHtml(next.due) : "还没排日子"}</span>`
     : st.length ? "步骤都做完了" : `<span class="due">还没拆步骤</span>`;
   const facts = `<dt>上次推进</dt><dd>${lastTxt}</dd><dt>下一步</dt><dd>${nextTxt}</dd>`
     + (p.why ? `<dt>为什么做</dt><dd class="wy">${esc(p.why)}</dd>` : "")
