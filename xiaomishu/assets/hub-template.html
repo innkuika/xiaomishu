@@ -273,6 +273,7 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .ptile .bar.zero span{min-width:0}
 .ptile .pc{font-family:var(--round);font-weight:500;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ptile .idle{position:absolute;top:12px;right:11px;font-size:11px;color:var(--faint);background:var(--paper-2);border-radius:999px;padding:0 7px;line-height:1.75;white-space:nowrap}
+.ptile .idle.wk{color:var(--muted)}
 .ptile.done .bar span{background:var(--ok)}
 /* 标题两行 + 小签放不下时让方块长高，不压扁标题 */
 .ptile > *{flex-shrink:0}
@@ -411,7 +412,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.10";
+const TEMPLATE_VERSION = "0.2.11";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -801,11 +802,15 @@ function projTile(p){
   const {st, done, moved, next} = projInfo(p), {e, n} = splitEmoji(p.title), wt = isWaiting(p);
   const pct = st.length ? Math.round(done.length/st.length*100) : 0;
   const idle = p.stage==="doing" && !wt ? idleDays(p, moved) : null, stale = idle !== null && idle >= 5;
+  // 14 天以上没动（等待中的也算）：小签改成「N 周没动」；没推进过就从开工 / 建项目那天算
+  const ref = p.stage==="doing" ? String(moved || p.started || p.created || "").slice(0,10) : "";
+  const idleW = ref ? diffDays(ref, todayStr()) : null, weeks = idleW !== null && idleW >= 14 ? Math.floor(idleW/7) : 0;
+  const idleTxt = weeks ? `${weeks} 周没动` : stale ? `${idle} 天没动` : "";
   const tag = wt ? `<span class="ptag wt" aria-hidden="true">⏳ ${esc(projWait(p))}</span>` : p.stage==="doing" && next ? `<span class="ptag can" aria-hidden="true"><span class="nt">→ ${esc(splitEmoji(next.title).n)}</span>${next.due ? `<span class="nd ${next.due < todayStr() ? "lateTxt" : ""}">· ${next.due < todayStr() ? lateTxt(next.due) : relDay(next.due)}</span>` : ""}</span>` : "";
   const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
     : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
-  const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${stale ? `，${idle} 天没动` : ""}`;
-  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${stale?`<span class="idle" aria-hidden="true">${idle} 天没动</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>${tag}
+  const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${idleTxt ? `，${idleTxt}` : ""}`;
+  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${idleTxt?`<span class="idle ${weeks?"wk":""}" aria-hidden="true">${idleTxt}</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>${tag}
     <span class="pfoot" aria-hidden="true"><span class="bar ${pct===0?"zero":""}"><span style="width:${pct}%"></span></span><span class="pc">${st.length?`${done.length}/${st.length}`:"没拆步骤"}</span></span></button>`;
 }
 function projDetail(p){
@@ -844,10 +849,12 @@ const PCAR = '<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable=
 function renderProjects(){
   if (projOpen){ const p = projects.find(x=>x.id===projOpen); if (p) return projDetail(p); projOpen = null; }
   const by = s => projects.filter(p=>(p.stage||"idea")===s);
-  // 进行中：最久没动的排最前
+  // 打平时用：最久没动的在前
   const staleKey = p => String(projInfo(p).moved || p.started || p.created || "").slice(0,10);
-  // 进行中：能动手的在前、等待中的在后；各自按最久没动排最前
+  const nextDue = p => projInfo(p).next?.due || "";
+  // 进行中：能动手的在前、等待中的在后；各自按下一步的日期排，最近的最前，没日期的放后面；同一天再按最久没动
   const doing = by("doing").sort((a,b)=>{ const wa = isWaiting(a), wb = isWaiting(b); if (wa !== wb) return wa ? 1 : -1;
+    const dA = nextDue(a), dB = nextDue(b); if (dA !== dB){ if (!dA) return 1; if (!dB) return -1; return dA<dB?-1:1; }
     const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; });
   const paused = by("paused"), idea = by("idea"), done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
   const tiles = list => `<div class="ptiles">${list.map(projTile).join("")}</div>`;
