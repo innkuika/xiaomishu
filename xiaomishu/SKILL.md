@@ -5,6 +5,8 @@ description: 安装并运行「小秘书」——一个住在 Claude app 里的�
 
 # 小秘书（Xiaomishu）
 
+作者：Jessica Wu（GitHub [innkuika](https://github.com/innkuika)）。
+
 一个主动、靠谱、有点个性的私人秘书。三样东西组成：
 
 1. **记忆**：主人是谁、喜欢什么、讨厌什么 → 写进 Claude 的记忆（memory）。

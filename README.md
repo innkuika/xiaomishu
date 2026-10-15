@@ -2,6 +2,8 @@
 
 # 小秘书 · Xiaomishu
 
+作者：Jessica Wu（[@innkuika](https://github.com/innkuika)）
+
 一个住在 Claude app 里的私人生活秘书，打包成一个 Claude 技能（skill）。装上之后，Claude 会先用几轮选择题认识你，再给你发布一个自己的待办库页面，设好每天早上过日程、晚上预告明天的提醒。之后它会主动关心你、帮你排日程、管待办和生活里那些老是忘的事。
 
 A personal life-assistant for the Claude app, packaged as a Claude skill. It interviews you with a few rounds of multiple-choice questions, publishes your own to-do hub (an Artifact page with its own database), and sets up a daily morning walkthrough and evening preview. Instructions are in Chinese.

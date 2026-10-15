@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.12 — 2026-10-15
+
+- `SKILL.md` 和 README 加上作者署名：Jessica Wu（innkuika）。
+- `TEMPLATE_VERSION` 升到 `0.2.12`，页面功能没变。
+
 ## v0.2.11 — 2026-10-15
 
 ### 待办库页面（`assets/hub-template.html`）

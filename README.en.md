@@ -2,6 +2,8 @@
 
 # Xiaomishu · 小秘书
 
+By Jessica Wu ([@innkuika](https://github.com/innkuika))
+
 A personal life assistant for the Claude app, packaged as a Claude skill. Once installed, Claude gets to know you through a few rounds of multiple-choice questions, publishes your own to-do hub page, and sets up a daily morning walkthrough and evening preview. After that it checks in with you, plans your days, and keeps track of your to-dos and the recurring chores you always forget.
 
 > The skill's instructions and the hub UI are written in Chinese. Claude replies in whatever language you use, but the questionnaire and page labels are Chinese.
