@@ -411,7 +411,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.9";
+const TEMPLATE_VERSION = "0.2.10";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -723,8 +723,10 @@ function routineLine(r, withBtn){
 let mailNotes = [], mailOpen = false;
 const MAIL_MAX = 3;
 const mailKey = e => (e.at || "") + "|" + (e.text || "");
+// 显示和排序都用收到邮件的时间 mailAt，没有就退回写小结的时间 at
+const mailTime = e => String(e.mailAt || e.at || "");
 function mailUnseen(){ return (Array.isArray(mailNotes) ? mailNotes : []).filter(e => e && e.text && e.seen !== true)
-  .sort((a,b) => String(b.at||"") < String(a.at||"") ? -1 : String(b.at||"") > String(a.at||"") ? 1 : 0); }
+  .sort((a,b) => { const x = Date.parse(mailTime(a)) || 0, y = Date.parse(mailTime(b)) || 0; return y - x; }); }
 function mailWhen(at){ const d = new Date(at); if (!at || isNaN(d)) return "";
   return `${relDay(ymd(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function mailShown(){ const u = mailUnseen(); return mailOpen ? u : u.slice(0, MAIL_MAX); }
@@ -732,7 +734,7 @@ function mailStrip(){
   const u = mailUnseen(); if (!u.length) return "";
   const shown = mailShown(), more = u.length - shown.length;
   return `<div class="mail" role="region" aria-label="邮件小结"><div class="mailhd"><span>📬 邮件小结</span><span class="count">${u.length}</span><button type="button" class="btn sm ghost" data-mail="seen">看过了</button></div>
-    <ul class="mailList">${shown.map(e => `<li><span class="mt">${esc(mailWhen(e.at))}</span><span class="mx">${esc(e.text)}</span></li>`).join("")}</ul>
+    <ul class="mailList">${shown.map(e => `<li><span class="mt">${esc(mailWhen(mailTime(e)))}</span><span class="mx">${esc(e.text)}</span></li>`).join("")}</ul>
     ${more > 0 ? `<button type="button" class="mailMore" data-mail="more">还有 ${more} 条</button>` : ""}</div>`; }
 // 「看过了」：把这次看到的几条标成 seen。先重新读一次整份文档，只改这几条，后台刚追加的新条目不会被覆盖掉
 async function markMailSeen(){
@@ -1105,7 +1107,7 @@ function demoDb(){
   put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
   // 邮件小结（后台任务写的）：两条没看过的
   const at = (n, h, m) => { const x = new Date(); x.setDate(x.getDate()+n); x.setHours(h, m, 0, 0); return x.toISOString(); };
-  put("meta", {entries:[{at:at(-1,19,40), text:"网上买的台灯已发货，后天送到", seen:false}, {at:at(0,9,15), text:"牙医诊所发来提醒：今天 16:30 复查，提前 10 分钟到", seen:false}]}, "mail-notes");
+  put("meta", {entries:[{at:at(-1,19,40), text:"网上买的台灯已发货，后天送到", seen:false}, {at:at(0,9,15), mailAt:at(0,7,50), text:"牙医诊所发来提醒：今天 16:30 复查，提前 10 分钟到", seen:false}]}, "mail-notes");
   const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});

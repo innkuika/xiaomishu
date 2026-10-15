@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.10 — 2026-10-15
+
+### 待办库页面（`assets/hub-template.html`）
+- 「📬 邮件小结」的条目可以带 `mailAt`（收到这封邮件的时间，ISO）：显示和排序都用 `mailAt`，没有就退回 `at`（写小结的时间）。新的在上。
+- `#demo` 的一条小结加了 `mailAt`。`TEMPLATE_VERSION` 升到 `0.2.10`。
+
 ## v0.2.9 — 2026-10-15
 
 ### 待办库页面（`assets/hub-template.html`）
