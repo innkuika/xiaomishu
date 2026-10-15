@@ -239,6 +239,18 @@ details summary:hover{color:var(--accent)}
 .pmenu-list button:hover{background:var(--accent-soft)}
 .stagechip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;line-height:1.7}
 .stall{font-size:12.5px;color:var(--seal);background:var(--seal-soft);border-radius:10px;padding:5px 10px}
+/* 📬 邮件小结：本周页最上面一小条，只放没看过的；都看过就整条不出现 */
+.mail{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:8px 12px 6px;display:flex;flex-direction:column;gap:2px;font-size:13.5px;min-width:0}
+.mailhd{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.mailhd .count{font-family:var(--round);color:var(--faint);font-weight:500}
+.mailhd .btn{margin-left:auto;margin-right:-6px}
+ul.mailList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mailList li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:1px dashed var(--rule);min-width:0;line-height:1.5}
+.mailList li:first-child{border-top:0}
+.mailList .mt{flex:none;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mailList .mx{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.mailMore{align-self:flex-start;border:0;background:transparent;color:var(--accent);font-size:12.5px;padding:2px 0 3px;border-radius:6px}
+.mailMore:hover{text-decoration:underline}
 /* 项目总览：按阶段分组的小方块，每块只有 emoji + 名字 + 进度条 */
 .pgrp{display:flex;flex-direction:column;gap:8px;min-width:0}
 .pgh{display:flex;align-items:center;gap:6px;margin:6px 2px 0;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
@@ -399,7 +411,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.8";
+const TEMPLATE_VERSION = "0.2.9";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -707,10 +719,33 @@ function routineLine(r, withBtn){
   }
   return `<div class="rline"><span class="ric">↻</span><span class="rt">${esc(r.title)}</span>${stamp(r.area)}${withBtn?`<span class="acts"><button class="btn sm" data-ract="did" data-rid="${r.id}">今天做了</button></span>`:""}</div>`;
 }
+// 邮件小结：后台任务写进 meta/mail-notes 的 {entries:[{at, text, seen}]}；文档可能还不存在
+let mailNotes = [], mailOpen = false;
+const MAIL_MAX = 3;
+const mailKey = e => (e.at || "") + "|" + (e.text || "");
+function mailUnseen(){ return (Array.isArray(mailNotes) ? mailNotes : []).filter(e => e && e.text && e.seen !== true)
+  .sort((a,b) => String(b.at||"") < String(a.at||"") ? -1 : String(b.at||"") > String(a.at||"") ? 1 : 0); }
+function mailWhen(at){ const d = new Date(at); if (!at || isNaN(d)) return "";
+  return `${relDay(ymd(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function mailShown(){ const u = mailUnseen(); return mailOpen ? u : u.slice(0, MAIL_MAX); }
+function mailStrip(){
+  const u = mailUnseen(); if (!u.length) return "";
+  const shown = mailShown(), more = u.length - shown.length;
+  return `<div class="mail" role="region" aria-label="邮件小结"><div class="mailhd"><span>📬 邮件小结</span><span class="count">${u.length}</span><button type="button" class="btn sm ghost" data-mail="seen">看过了</button></div>
+    <ul class="mailList">${shown.map(e => `<li><span class="mt">${esc(mailWhen(e.at))}</span><span class="mx">${esc(e.text)}</span></li>`).join("")}</ul>
+    ${more > 0 ? `<button type="button" class="mailMore" data-mail="more">还有 ${more} 条</button>` : ""}</div>`; }
+// 「看过了」：把这次看到的几条标成 seen。先重新读一次整份文档，只改这几条，后台刚追加的新条目不会被覆盖掉
+async function markMailSeen(){
+  if (!db) return; const keys = new Set(mailShown().map(mailKey)); if (!keys.size) return;
+  const ref = db.doc("meta/mail-notes"); let cur = mailNotes;
+  try { const snap = await ref.get(); if (snap && snap.exists) cur = (snap.data() || {}).entries || []; } catch(e) {}
+  const entries = (Array.isArray(cur) ? cur : []).map(e => e && keys.has(mailKey(e)) ? {...e, seen:true} : e);
+  mailOpen = false; mailNotes = entries; render();
+  await write(ref, r => r.update({entries}), null); }
 function renderWeek(){
   const t = todayStr(), op = open().filter(i=>i.status!=="someday");
   const late = op.filter(i=>i.due && i.due < t).sort((a,b)=>a.due<b.due?-1:1);
-  let h = "";
+  let h = mailStrip();
   if (late.length) h += `<div class="box oweBox"><h2>还欠着的 <span class="count">${late.length}</span></h2><ul class="items">${late.map(itemRow).join("")}</ul></div>`;
   for (let k=0;k<7;k++){
     const d = addDays(t,k);
@@ -934,6 +969,8 @@ async function write(ref, fn, okMsg){
 document.addEventListener("click", async ev => {
   const tb = ev.target.closest("#tabs button");
   if (tb){ navTok++; switchTab(tb.dataset.tab, () => { areaFilter=null; q=""; $("#search").value=""; openId=null; projOpen=null; }); return; }
+  const ml = ev.target.closest("[data-mail]");
+  if (ml){ if (ml.dataset.mail === "more"){ mailOpen = true; render(); } else await markMailSeen(); return; }
   const po = ev.target.closest("[data-popen]");
   if (po){ openProject(po.dataset.popen); return; }
   if (ev.target.closest("[data-pback]")){ closeProject(); return; }
@@ -1066,6 +1103,9 @@ function demoDb(){
   const t = todayStr(), d = n => addDays(t, n), store = {items:{}, routines:{}, projects:{}, meta:{}}, subs = {items:[], routines:[], projects:[], meta:[]};
   let seq = 0; const put = (c, v, id) => { id = id || (c[0] + (++seq)); store[c][id] = v; return id; };
   put("meta", {title:"我的小本本", areaNames:{partner:"另一半", pet:"宠物"}}, "config");
+  // 邮件小结（后台任务写的）：两条没看过的
+  const at = (n, h, m) => { const x = new Date(); x.setDate(x.getDate()+n); x.setHours(h, m, 0, 0); return x.toISOString(); };
+  put("meta", {entries:[{at:at(-1,19,40), text:"网上买的台灯已发货，后天送到", seen:false}, {at:at(0,9,15), text:"牙医诊所发来提醒：今天 16:30 复查，提前 10 分钟到", seen:false}]}, "mail-notes");
   const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
@@ -1102,7 +1142,8 @@ function demoDb(){
   const snap = c => ({docs: Object.entries(store[c]).map(([id, v]) => ({id, data: () => ({...v})}))});
   const emit = c => setTimeout(() => subs[c].forEach(f => f(snap(c))), 0);
   const docRef = path => { const [c, id] = path.split("/");
-    return {update: async v => { store[c][id] = {...store[c][id], ...v}; emit(c); }, delete: async () => { delete store[c][id]; emit(c); }}; };
+    return {update: async v => { store[c][id] = {...store[c][id], ...v}; emit(c); }, delete: async () => { delete store[c][id]; emit(c); },
+      get: async () => ({id, exists: !!store[c][id], data: () => store[c][id] ? {...store[c][id]} : undefined})}; };
   return {collection: c => ({onSnapshot: f => { subs[c].push(f); f(snap(c)); return () => {}; }, add: async v => { put(c, v); emit(c); }}), doc: docRef};
 }
 (async () => {
@@ -1115,7 +1156,8 @@ function demoDb(){
   db.collection("routines").onSnapshot(s => { routines = s.docs.map(d => ({id:d.id, ...d.data()})); loaded.routines = true; render(); }, () => {});
   db.collection("projects").onSnapshot(s => { projects = s.docs.map(d => ({id:d.id, ...d.data()})); render(); }, () => {});
   // meta/config：{title, areaNames:{partner:"…", pet:"…"}}。没有就用默认的「我的小本本」和默认分类名
-  db.collection("meta").onSnapshot(s => { const c = s.docs.find(d => d.id === "config"); if (!c) return; const v = c.data() || {};
+  db.collection("meta").onSnapshot(s => { const mn = s.docs.find(d => d.id === "mail-notes"); mailNotes = (mn && (mn.data() || {}).entries) || [];
+    const c = s.docs.find(d => d.id === "config"); if (!c){ render(); return; } const v = c.data() || {};
     if (v.title) { document.title = v.title; const h = document.getElementById("hubTitle"); if (h) h.textContent = v.title; }
     if (v.areaNames) { for (const [k, n] of Object.entries(v.areaNames)) { if (AREAS[k] && n) AREAS[k] = {...AREAS[k], name: n}; } }
     render(); }, () => {});
