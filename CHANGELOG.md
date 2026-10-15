@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.13 — 2026-10-15
+
+- `references/conventions.md`：排日子时也扫 routines，到期那天排满了就挪到前后放得下的一天，建带 routine 的 item 占上。
+- `TEMPLATE_VERSION` 升到 `0.2.13`，页面功能没变。
+
 ## v0.2.12 — 2026-10-15
 
 - `SKILL.md` 和 README 加上作者署名：Jessica Wu（innkuika）。
