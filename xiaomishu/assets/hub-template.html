@@ -173,6 +173,12 @@ button.chip.go:active{transform:scale(.97)}
 .hlCard{box-shadow:0 0 0 3px var(--accent-soft)!important}
 .adot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);vertical-align:3px;margin-right:7px}
 .day .note{background:var(--paper-2);border-radius:10px;padding:6px 10px;margin-top:6px}
+/* ⚠️ 还没排时间：今天那格最上面，due=今天、没 time、不是 daily 的事。朱色虚线框，有内容就说明预告第二天时的自检没做完 */
+.untimed{border:1.5px dashed color-mix(in srgb,var(--seal) 55%,var(--line));background:var(--seal-soft);border-radius:14px;padding:8px 12px 4px;margin:2px 0 6px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.untimed .uh{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--seal)}
+.untimed .uh .count{font-family:var(--round);font-weight:500;font-size:12.5px;color:var(--seal);opacity:.75}
+.untimed li.item{border-top-color:color-mix(in srgb,var(--seal) 22%,transparent)}
+.untimed .chk{background:var(--paper)}
 /* ⓘ popover */
 .hdrBtns{display:flex;gap:8px;align-items:center;flex:none}
 .infoBtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--muted);font-family:var(--round);font-weight:700;font-size:14px;padding:0}
@@ -412,7 +418,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.13";
+const TEMPLATE_VERSION = "0.2.14";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -452,7 +458,7 @@ function afterRender(){
       if (pendBump.n === 1 && !f.querySelector(".sk")) expandEl(f.parentElement, 260, 6); else { bump(fb); bump(f.querySelector(".fk")); }
       const nl = f.parentElement.querySelector(`.doneList li[data-id="${pendBump.id}"]`); if (nl) expandEl(nl, 300, -8);
       pendBump = null; } }
-  if (pendBack){ const el = document.querySelector(`.day > ul.items > li[data-id="${pendBack}"]`);
+  if (pendBack){ const el = document.querySelector(`.day ul.items:not(.doneList) > li[data-id="${pendBack}"]`);
     if (el){ expandEl(el, 320, 8, true); pendBack = null; } }
 }
 // 点项目小标签：切到「项目」页，展开那个项目，滚过去，项目卡片和那一步各闪一下浅蓝
@@ -770,7 +776,11 @@ function renderWeek(){
       : `<span class="load" aria-label="做完 ${dn} 件，共 ${total} 件"><b>${dn}</b>/${total}</span>`;
     h += `<div class="day ${k===0?"today":""} ${wd===0||wd===6?"weekend":""}">
       <div class="dayhead"><span class="dd">${mm}/${dd}</span><span class="wk">${WD[wd]}</span>${k<2?`<span class="rel">${k===0?"今天":"明天"}</span>`:""}${loadTxt}</div>`;
-    if (liveIt.length) h += `<ul class="items">${liveIt.map(itemRow).join("")}</ul>`;
+    // 今天：没排时间的（不算 daily）单独放在最上面的「⚠️ 还没排时间」里，不在下面重复
+    const untimed = k===0 ? liveIt.filter(i=>!i.time && !i.daily) : [];
+    const timedIt = untimed.length ? liveIt.filter(i=>!untimed.includes(i)) : liveIt;
+    if (untimed.length) h += `<div class="untimed" role="region" aria-label="还没排时间"><div class="uh"><span>⚠️ 还没排时间</span><span class="count">${untimed.length}</span></div><ul class="items">${untimed.map(itemRow).join("")}</ul></div>`;
+    if (timedIt.length) h += `<ul class="items">${timedIt.map(itemRow).join("")}</ul>`;
     if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
     if (doneIt.length || skipIt.length){ const fo = foldOpen.has(d), sn = skipIt.length;
       const lbl = (doneIt.length ? `<span>已完成<b class="dn">${doneIt.length}</b>件</span>` : "") + (sn ? `<span class="sk">${doneIt.length?"· ":""}跳过 ${sn} 件</span>` : "");

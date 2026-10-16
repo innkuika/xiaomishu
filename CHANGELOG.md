@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.14 — 2026-10-15
+
+- `assets/hub-template.html`：本周页「今天」那格最上面加「⚠️ 还没排时间」区，放今天要做、没写 time、不是 daily 的事（work 也算）；这些事从下面的时间线里挪上来，不重复；一条都没有时整块不出现。
+- `references/conventions.md`：新增【收尾自检】排完第二天后，due=明天、没时间的事（daily 除外）必须清零；早上过日程前同样查今天的。
+- `TEMPLATE_VERSION` 升到 `0.2.14`。
+
 ## v0.2.13 — 2026-10-15
 
 - `references/conventions.md`：排日子时也扫 routines，到期那天排满了就挪到前后放得下的一天，建带 routine 的 item 占上。
