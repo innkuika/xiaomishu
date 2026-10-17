@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.15 — 2026-10-17
+
+- `assets/hub-template.html`：「项目」页按线分组：⭐ 这季度在推（star，主线在前）→ 维护（该做的）→ 重新想 → 新点子（带加点子的框）→ 以后（收起）→ 已完成（收起）。项目新增 `lane`（main / experiment / maintain / rethink / later）和 `star` 字段；没标 lane 的按 stage 归（doing→维护，paused→以后，idea→新点子）。打星的项目卡片名字前有 ★，项目详情的标签里显示所在的线。
+- `references/conventions.md`：新增【项目分线】说明 lane / star 的用法。
+- `TEMPLATE_VERSION` 升到 `0.2.15`。
+
 ## v0.2.14 — 2026-10-15
 
 - `assets/hub-template.html`：本周页「今天」那格最上面加「⚠️ 还没排时间」区，放今天要做、没写 time、不是 daily 的事（work 也算）；这些事从下面的时间线里挪上来，不重复；一条都没有时整块不出现。
