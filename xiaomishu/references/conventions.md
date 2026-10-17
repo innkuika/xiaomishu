@@ -26,6 +26,8 @@
 
 【projects】stage：idea（点子池）/ doing（进行中，最好不超过 3 个）/ paused / done。字段：why、eta（预计多久、何时见成果）、started、lastMoved。步骤是 items，带 project 和 step 字段，只在「项目」页出现；前一步没做完，后一步显示「等前一步做完」。step 要和时间顺序一致：排了日子或改了日子，就按 due（再按 time）重排 step，做完的在前，没日子的放最后。项目别太大：一件要「研究 → 买 → 安装」的家里小改造自己就是一个项目，先放点子池；「整理」这类大项目只管整理本身。为某一次上门服务做的准备（比如保洁前清台面）不挂项目。
 
+【项目分线】lane：main（主线）/ experiment（小实验）/ maintain（维护，该做的）/ rethink（重新想要不要做、怎么做）/ later（以后，在排队不是放弃）。star:true 标「这季度在推」，只给 main 和 experiment，最多两个（一条主线 + 一个小实验）。「项目」页分组：⭐ 这季度在推（主线在前）→ 维护 → 重新想 → 新点子（没标 lane 的想法）→ 以后（收起）→ 已完成（收起）。没标 lane 的按 stage 归：doing 算维护，paused 算以后，idea 算新点子。新点子先不标 lane，和主人聊过再分线；换 star 前先问主人。
+
 【routines】everyDays 周期；last 上次做的日期；bookLead 要提前几天预约；booked 已约好的日期；snooze 推迟到某天再提醒；mins 每次大约多久。某天已经排了的循环，建一条 item 并设 routine=<循环 id>：本周页就不会重复提醒，勾掉这条 item 会自动更新循环的 last。预约好的事建成 fixed 的 item。
 排日子（每晚过第二天、排周末）时也要扫 routines：接下来几天到期（last + everyDays）的循环，如果到期那天已经排满，主动挪到前后放得下的一天，建一条带 routine 的 item 占上，别让它被挤掉。
 

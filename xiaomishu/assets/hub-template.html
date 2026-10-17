@@ -311,6 +311,8 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .pdTags{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .stagechip.doing{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--accent-soft)}
 .stagechip.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:var(--ok-soft)}
+.pstar{color:var(--accent);margin-right:4px}
+.pstarred .ptile{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
 .pdFacts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:2px 0 0;font-size:14px;background:var(--paper-2);border-radius:12px;padding:10px 12px}
 .pdFacts dt{font-size:12.5px;color:var(--muted);white-space:nowrap;line-height:1.75}
 .pdFacts dd{margin:0;min-width:0;overflow-wrap:anywhere;word-break:break-word}
@@ -418,7 +420,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.14";
+const TEMPLATE_VERSION = "0.2.15";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -807,6 +809,10 @@ function stepWait(i){ if (!i || isClosed(i)) return "";
 // 项目在等什么：手动标的优先，否则看现在这一步（第一件没做完的）。勾掉一步后自动重新算
 function projWait(p){ return waitOf(p) || stepWait(projInfo(p).next); }
 const isWaiting = p => p.stage==="doing" && !!projWait(p);
+// 项目属于哪条线：做完的归档；没标线的——进行中算维护，暂停算以后，想法算「新点子」
+const LANES = {main:"⭐ 主线", experiment:"⭐ 小实验", maintain:"维护", rethink:"重新想", later:"以后"};
+function laneOf(p){ if (p.stage==="done") return "done"; if (p.lane && LANES[p.lane]) return p.lane;
+  return p.stage==="doing" ? "maintain" : p.stage==="paused" ? "later" : "new"; }
 let waitEdit = null;   // 正在填「在等什么」的项目 id
 function projTile(p){
   const {st, done, moved, next} = projInfo(p), {e, n} = splitEmoji(p.title), wt = isWaiting(p);
@@ -820,7 +826,7 @@ function projTile(p){
   const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
     : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
   const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${idleTxt ? `，${idleTxt}` : ""}`;
-  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${idleTxt?`<span class="idle ${weeks?"wk":""}" aria-hidden="true">${idleTxt}</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>${tag}
+  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${idleTxt?`<span class="idle ${weeks?"wk":""}" aria-hidden="true">${idleTxt}</span>`:""}<span class="pn" aria-hidden="true">${p.star && p.stage!=="done" ? `<span class="pstar">★</span>` : ""}${esc(n)}</span>${tag}
     <span class="pfoot" aria-hidden="true"><span class="bar ${pct===0?"zero":""}"><span style="width:${pct}%"></span></span><span class="pc">${st.length?`${done.length}/${st.length}`:"没拆步骤"}</span></span></button>`;
 }
 function projDetail(p){
@@ -845,7 +851,7 @@ function projDetail(p){
   return `<button type="button" class="btn" data-pback style="align-self:flex-start">← 全部项目</button>
     <div class="box pdetail" data-pid="${p.id}">
       <div class="pdHead"><h2>${esc(p.title)}</h2>${menu}</div>
-      <div class="pdTags"><span class="stagechip ${p.stage||"idea"}">${PSTAGE[p.stage||"idea"]||""}</span>${stamp(p.area)}</div>
+      <div class="pdTags"><span class="stagechip ${p.stage||"idea"}">${PSTAGE[p.stage||"idea"]||""}</span>${LANES[laneOf(p)] ? `<span class="stagechip">${LANES[laneOf(p)]}</span>` : ""}${stamp(p.area)}</div>
       ${waitHtml}
       ${st.length?`<div class="prog"><div class="bar ${pct===0?"zero":""}" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div><span class="pct">${done.length}/${st.length}<small>步</small></span></div>`:""}
       <dl class="pdFacts">${facts}</dl>
@@ -858,22 +864,29 @@ function projDetail(p){
 const PCAR = '<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function renderProjects(){
   if (projOpen){ const p = projects.find(x=>x.id===projOpen); if (p) return projDetail(p); projOpen = null; }
-  const by = s => projects.filter(p=>(p.stage||"idea")===s);
+  // 分线：lane = main 主线 / experiment 小实验 / maintain 维护（该做的）/ rethink 重新想 / later 以后；star = 这季度在推
+  const by = l => projects.filter(p=>laneOf(p)===l);
   // 打平时用：最久没动的在前
   const staleKey = p => String(projInfo(p).moved || p.started || p.created || "").slice(0,10);
   const nextDue = p => projInfo(p).next?.due || "";
-  // 进行中：能动手的在前、等待中的在后；各自按下一步的日期排，最近的最前，没日期的放后面；同一天再按最久没动
-  const doing = by("doing").sort((a,b)=>{ const wa = isWaiting(a), wb = isWaiting(b); if (wa !== wb) return wa ? 1 : -1;
+  // 每组里：进行中的在前；能动手的在前、等待中的在后；各自按下一步的日期排，最近的最前，没日期的放后面；同一天再按最久没动
+  const order = (a,b)=>{ const da = a.stage==="doing", db_ = b.stage==="doing"; if (da !== db_) return da ? -1 : 1;
+    const wa = isWaiting(a), wb = isWaiting(b); if (wa !== wb) return wa ? 1 : -1;
     const dA = nextDue(a), dB = nextDue(b); if (dA !== dB){ if (!dA) return 1; if (!dB) return -1; return dA<dB?-1:1; }
-    const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; });
-  const paused = by("paused"), idea = by("idea"), done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
+    const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; };
+  const starred = projects.filter(p=>p.star && p.stage!=="done").sort((a,b)=>(a.lane==="main"?0:1)-(b.lane==="main"?0:1) || order(a,b));
+  const maintain = by("maintain").filter(p=>!p.star).sort(order), rethink = by("rethink").filter(p=>!p.star).sort(order),
+        later = by("later").filter(p=>!p.star).sort(order), fresh = by("new").sort(order),
+        done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
   const tiles = list => `<div class="ptiles">${list.map(projTile).join("")}</div>`;
   const head = (lbl, n) => `<div class="pgh">${lbl} <span class="count">${n}</span></div>`;
-  return `<div class="status">进行中的最好不超过 3 个。点一个项目看全部步骤。</div>`
-    + `<div class="pgrp">${head("进行中", doing.length)}${doing.length ? tiles(doing) : `<div class="empty">还没有进行中的项目。</div>`}</div>`
-    + (paused.length ? `<div class="pgrp">${head("暂停", paused.length)}${tiles(paused)}</div>` : "")
-    + `<div class="pgrp">${head("想法", idea.length)}${idea.length ? tiles(idea) : `<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
+  return `<div class="status">⭐ 是这个季度在推的：主线 + 小实验，最多两个。维护的按节奏来，「以后」在排队不是放弃。点一个项目看全部步骤。</div>`
+    + `<div class="pgrp pstarred">${head("⭐ 这季度在推", starred.length)}${starred.length ? tiles(starred) : `<div class="empty">还没挑主线。</div>`}</div>`
+    + `<div class="pgrp">${head("维护（该做的）", maintain.length)}${maintain.length ? tiles(maintain) : `<div class="empty">没有要维护的。</div>`}</div>`
+    + (rethink.length ? `<div class="pgrp">${head("重新想", rethink.length)}${tiles(rethink)}</div>` : "")
+    + `<div class="pgrp">${head("新点子", fresh.length)}${fresh.length ? tiles(fresh) : `<div class="empty">聊天时冒出来的点子会先放在这里，小秘书之后帮你分线。</div>`}
       <form class="capture addidea"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
+    + (later.length ? `<details class="pgrp" data-later><summary class="pgh">以后 <span class="count">${later.length}</span>${PCAR}</summary>${tiles(later)}</details>` : "")
     + (done.length ? `<details class="pgrp" data-archive ${archiveOpen?"open":""}><summary class="pgh">已完成 <span class="count">${done.length}</span>${PCAR}</summary>${tiles(done)}</details>` : "");
 }
 function areaState(k){
@@ -1125,10 +1138,10 @@ function demoDb(){
   // 邮件小结（后台任务写的）：两条没看过的
   const at = (n, h, m) => { const x = new Date(); x.setDate(x.getDate()+n); x.setHours(h, m, 0, 0); return x.toISOString(); };
   put("meta", {entries:[{at:at(-1,19,40), text:"网上买的台灯已发货，后天送到", seen:false}, {at:at(0,9,15), mailAt:at(0,7,50), text:"牙医诊所发来提醒：今天 16:30 复查，提前 10 分钟到", seen:false}]}, "mail-notes");
-  const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
+  const pj = put("projects", {title:"📚 整理书房", stage:"doing", lane:"main", star:true, area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
-  put("projects", {title:"🎸 学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
+  put("projects", {title:"🎸 学吉他", stage:"paused", lane:"later", area:"hobby", why:"最近太忙，先放一放。"});
   put("projects", {title:"📱 换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
   [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
    {title:"约体检", project:wp, step:1, status:"done", doneAt:d(-9), area:"health"},
