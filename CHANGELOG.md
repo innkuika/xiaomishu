@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.2.16 — 2026-11-01
+
+### 规则：按字段写，不按标签页写
+- 起因：页面的标签页一直在变（改名、合并、挪分区），按「放进哪个标签」写待办的小秘书会写错地方、写重复（同一件事既是项目步骤、又是散的事项、又是循环）。
+- `references/conventions.md`：
+  - 新增【放哪儿：按字段，不按标签页】决定表：情况 → 该写的字段（fixed 约好的时间、due、不写 due、project+step、routine、watch、kind:buy+shop+maybe、someday）。明确写着：标签页和筛选都是从字段算出来的，写入时不要按标签页想。
+  - 新增【写之前先搜】【时间变化要落地】【软关闭】（status + closedWhy，不硬删）【改字段就同步技能】。
+  - 字段表补上 event、shop、maybe、waitFor、notBefore、closedWhy；doneAt 只写 YYYY-MM-DD。新增 watches 集合（只是盯着看的价格 / 发售 / 演出；cadenceDays、lastChecked、lastSeen，有变化才说）。
+  - 去掉【收件箱放什么】和【kind】里「显示在哪个标签」的说法；周日清收件箱时顺手查重复。
+- `SKILL.md`、`references/daily-rhythm.md`、`README.md` 跟着改成按字段的说法。
+
+### 待办库页面（`assets/hub-template.html`）
+- 本周页底部加「之后排好的」：七天以后已经有日子的事，默认收起，按日子分组。
+- 本周页加「🔒 只看约好时间的」开关：只留 fixed:true 的事（也滤掉循环、⚠️ 还没排时间区、已完成折叠）；开关状态记在各自的浏览器里。
+- 「收件箱」里列出排在「以后」那条线（lane:later，或没标线的 paused）的项目名字，点一下去项目页。
+- `TEMPLATE_VERSION` 升到 `0.2.16`。只多了显示，数据格式兼容 v0.2.15。
+
+### TODO
+- 页面还不显示 watches；收件箱 / 以后再说 / 闲了玩还没合并成一个「还没排」视图。
+
 ## v0.2.15 — 2026-10-17
 
 - `assets/hub-template.html`：「项目」页按线分组：⭐ 这季度在推（star，主线在前）→ 维护（该做的）→ 重新想 → 新点子（带加点子的框）→ 以后（收起）→ 已完成（收起）。项目新增 `lane`（main / experiment / maintain / rethink / later）和 `star` 字段；没标 lane 的按 stage 归（doing→维护，paused→以后，idea→新点子）。打星的项目卡片名字前有 ★，项目详情的标签里显示所在的线。
