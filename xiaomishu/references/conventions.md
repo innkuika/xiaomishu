@@ -8,9 +8,31 @@
 
 〈称呼〉的待办库是「要做什么、什么时候做」的唯一来源。日历、定时消息都以这里为准。关于〈称呼〉是谁、喜欢什么，写进记忆，不写进这里。同一件事只放在一个地方。缺了什么就问〈称呼〉，不要猜。
 
-【collections】items（事项）、routines（生活循环）、projects（项目）、meta（config 和本说明）。写已有文档时一律带 if_version；冲突了就重读再合并，不覆盖主人自己的改动。
+【collections】items（事项）、routines（生活循环）、projects（项目）、watches（只是盯着看的：价格、发售、演出）、meta（config 和本说明）。写已有文档时一律带 if_version；冲突了就重读再合并，不覆盖主人自己的改动。
 
-【items 字段】title、area、kind、status（todo / done / someday / skipped）、due（YYYY-MM-DD）、time（HH:MM）、fixed、approx、daily、mins、note、created、doneAt、project、step、routine、img（asset id）。
+【items 字段】title、area、kind（task / event / life / buy / fun / idea）、status（todo / done / skipped / someday）、due（YYYY-MM-DD）、time（HH:MM）、fixed、approx、daily、mins、note、created、doneAt（只写 YYYY-MM-DD，不带时间）、closedWhy、project、step、waitFor、notBefore、routine、shop、maybe、img（asset id）。
+
+【放哪儿：按字段，不按标签页】
+页面上的标签页、分区、筛选都是从字段算出来的，而且会改名、合并、挪位置。写入时只想「这件事该带哪些字段」，永远不要按「它该出现在哪个标签页」来决定怎么写。
+
+| 情况 | 写什么 |
+|---|---|
+| 约好的固定时间（预约、订位、航班、上门服务） | item：due + time + fixed:true |
+| 一次性、有日子 | item：due（time 可选；只是大概的就加 approx:true） |
+| 想做、还没日子 | item：不写 due |
+| 属于某个项目 | item：project + step。同一件事不再另建一条散的 item |
+| 定期重复（理发、体检、打扫） | 一条 routine，不建一条条单独的 item。项目里最多留一次性的那步（「把它设起来」「清掉积压」） |
+| 只是盯着看（价格、发售、演出） | 一条 watch，不建 item |
+| 要买 | item：kind:buy + shop（去哪儿买）；只是有点兴趣、不一定买的，再加 maybe:true |
+| 不做了 / 以后再说 | status:someday（不删） |
+
+【写之前先搜】新建任何东西之前，先在 items、projects（含步骤）、routines、watches 里搜同一个意思（换个说法也搜一下，比如「理发」「剪头发」）。有就改那一条，不新建。和某个项目步骤或某个循环重叠的，挂到那里（补 project+step，或设 routine=<id>），不另起一条。
+
+【时间变化要落地】邮件或通知说时间变了（时区、夏令时、改约、延期），当场把受影响的每一条带日子的 item 建好或改好（due、time、fixed）。只在 note 里写一句「时间会变」不算数。确认邮件是时间的唯一依据，不按主人的记忆；换算成主人所在时区再写，并在 note 里注明「已按〈主人的时区〉换算，原文是 XX」。
+
+【软关闭】合并重复、清理、不做了，一律不硬删：status:done（不做了用 skipped 或 someday）+ closedWhy 一句话（比如「和项目 X 第 2 步重复，已合并」）。删除只在主人明确说「删掉」时做。
+
+【改字段就同步技能】改待办库页面时，凡是新增、改名、换用途的字段，同一次改动里把本说明的【items 字段】和【放哪儿】表一起改掉（用了小秘书技能包的，也改技能里的 conventions.md）。页面和规则不能各说各的。
 
 【时间三种写法】
 - fixed:true → 🔒 约好的固定时间，不能挪（预约、订位、航班）。
@@ -18,13 +40,15 @@
 - 只有 time → 小秘书排的，可以挪。
 - 没有 time → 只排日子，哪天有空就做。弹性的事默认这样。
 
-【kind】task 要做；buy 要买（显示在「要买的」）；idea 点子（显示在「以后再说」）；fun 闲了玩（没日期时显示在「闲了玩」，area 为 partner 的归到和另一半一起玩）；life 吃饭睡觉这类维持生活的日常。
-
-【收件箱放什么】只放 kind=task、没有 due、不属于项目的事。其他没日期的事各回各的标签。
+【kind】task 要做；event 去参加 / 赴约的事；buy 要买；idea 点子；fun 闲了玩（area 为 partner 的是和另一半一起玩）；life 吃饭睡觉、路上这类维持生活的日常。kind 只说「这是什么事」，不用来决定它显示在哪。
 
 【areas】work 工作；partner 另一半；me 自己；health 健康；home 家；pet 宠物；money 钱；project 项目；hobby 爱好；people 朋友家人；misc 杂项。显示名在 meta/config.areaNames 里改，key 不能改。
 
-【projects】stage：idea（点子池）/ doing（进行中，最好不超过 3 个）/ paused / done。字段：why、eta（预计多久、何时见成果）、started、lastMoved。步骤是 items，带 project 和 step 字段，只在「项目」页出现；前一步没做完，后一步显示「等前一步做完」。step 要和时间顺序一致：排了日子或改了日子，就按 due（再按 time）重排 step，做完的在前，没日子的放最后。项目别太大：一件要「研究 → 买 → 安装」的家里小改造自己就是一个项目，先放点子池；「整理」这类大项目只管整理本身。为某一次上门服务做的准备（比如保洁前清台面）不挂项目。
+【projects】stage：idea（点子池）/ doing（进行中，最好不超过 3 个）/ paused / done。字段：why、eta（预计多久、何时见成果）、started、lastMoved。步骤是 items，带 project 和 step 字段（页面自己把它们归到项目下，不要再为同一步另建散的 item）；前一步没做完，后一步显示「等前一步做完」。step 要和时间顺序一致：排了日子或改了日子，就按 due（再按 time）重排 step，做完的在前，没日子的放最后。项目别太大：一件要「研究 → 买 → 安装」的家里小改造自己就是一个项目，先放点子池；「整理」这类大项目只管整理本身。为某一次上门服务做的准备（比如保洁前清台面）不挂项目。
+
+【项目分线】lane：main（主线）/ experiment（小实验）/ maintain（维护，该做的）/ rethink（重新想要不要做、怎么做）/ later（以后，在排队不是放弃）。star:true 标「这季度在推」，只给 main 和 experiment，最多两个（一条主线 + 一个小实验）。「项目」页分组：⭐ 这季度在推（主线在前）→ 维护 → 重新想 → 新点子（没标 lane 的想法）→ 以后（收起）→ 已完成（收起）。没标 lane 的按 stage 归：doing 算维护，paused 算以后，idea 算新点子。新点子先不标 lane，和主人聊过再分线；换 star 前先问主人。
+
+【watches】title、area、what（盯什么：价格 / 发售 / 开票）、target（目标价或日子，可空）、url、note、cadenceDays（几天看一次）、lastChecked（上次看的日期）、lastSeen（上次看到的结果）、status（watching / triggered / done）。只读：到期了去看，跟 lastSeen 比，有变化才告诉主人；不替他买、报名、订阅。等到了要买或要订，再建对应的 item（kind:buy 或 fixed 的 item），watch 软关闭。
 
 【routines】everyDays 周期；last 上次做的日期；bookLead 要提前几天预约；booked 已约好的日期；snooze 推迟到某天再提醒；mins 每次大约多久。某天已经排了的循环，建一条 item 并设 routine=<循环 id>：本周页就不会重复提醒，勾掉这条 item 会自动更新循环的 last。预约好的事建成 fixed 的 item。
 排日子（每晚过第二天、排周末）时也要扫 routines：接下来几天到期（last + everyDays）的循环，如果到期那天已经排满，主动挪到前后放得下的一天，建一条带 routine 的 item 占上，别让它被挤掉。
@@ -50,9 +74,9 @@
 
 【收尾自检：没时间的事要清零】排完第二天之后，专门查一遍「due=明天、status=todo、没有 time」的事（daily 的除外），work 的也算，必须是零条才算排完：每条要么补上时间（不确定就 approx），要么挪到别的日子并一句话告诉主人。早上过日程前，同样查一遍今天的。原因：过日程是按时间往下念的，没时间的事不在那条线上，会被整条跳过。页面「今天」那格最上面有「⚠️ 还没排时间」区，有内容就说明自检没做完。
 
-【记和做分开】主人说「先记着」「回头弄」，当场写进待办库（没日子就进收件箱），做可以晚点。不要只记在对话里等以后再写。
+【记和做分开】主人说「先记着」「回头弄」，当场写进待办库（没日子就不写 due），做可以晚点。不要只记在对话里等以后再写。
 
-【勾选】没做的就不勾。主人没说做完、也看不出做完了，就保持没做，晚上问一句。做完的写 doneAt=实际完成那天（不是原来排的 due）；本周页「已完成」按 doneAt 归到那一天，补勾昨天的事也要写昨天的日期。
+【勾选】没做的就不勾。主人没说做完、也看不出做完了，就保持没做，晚上问一句。做完的写 doneAt=实际完成那天（YYYY-MM-DD，不是原来排的 due）；本周页「已完成」按 doneAt 归到那一天，补勾昨天的事也要写昨天的日期。
 
 【跳过】忘了做、没做、也不打算补的事（多半是每天的日常）标 status=skipped：不算做完也不算欠着，不往后挪。晚上过日程时，当天没勾的日常先问一句，主人说忘了就标 skipped，不替他勾成 done。某条老被跳过，就主动提议换时间或换办法。
 
@@ -64,6 +88,6 @@
 
 【提醒里不写死事实】定时提醒的 prompt 只写「到点读待办库里 XX 这件事，再说话」，不把时间、地点、清单抄进提醒本身；事情改了，提醒自然跟着对。一条提醒只管一件事。
 
-【收件箱】每周日清一次：每条给一个建议（排到哪天 / 放进以后再说 / 归到哪个项目 / 删掉），主人点头再改。
+【收件箱】每周日清一次没 due、不属于项目的事：每条给一个建议（排到哪天 / someday / 挂到哪个项目或循环 / 软关闭），主人点头再改。顺手查一遍重复（同一件事既是项目步骤、又是散的 item、又是循环），按【写之前先搜】合并。
 
 【不能做】不替〈称呼〉下单、预约、付款、发消息，除非他每次都明确同意。家人之间的敏感事不写进待办库。

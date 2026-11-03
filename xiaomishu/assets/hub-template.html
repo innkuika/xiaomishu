@@ -90,6 +90,15 @@ input,select,textarea{font:inherit;color:var(--ink);font-size:16px}
 
 section.panel{display:flex;flex-direction:column;gap:12px}
 .status{font-size:13px;color:var(--muted)}
+.wkbar{display:flex;justify-content:flex-end}
+.wkbar .btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.laterBox > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px}
+.laterBox > summary::-webkit-details-marker{display:none}
+.laterBox > summary .car{display:inline-block;width:9px;height:9px;color:var(--faint);transition:transform .18s ease;margin-left:auto}
+.laterBox[open] > summary .car{transform:rotate(90deg)}
+.laterBox .lday{font-size:12.5px;color:var(--muted);margin:8px 0 0;font-family:var(--round)}
+.lateProj{display:flex;flex-direction:column;gap:6px}
+.lateProj .btn{justify-content:flex-start;text-align:left}
 .empty{color:var(--faint);font-size:13.5px;padding:6px 0}
 
 /* ── cards ── */
@@ -311,6 +320,8 @@ details.pgrp[open] > summary .car{transform:rotate(90deg)}
 .pdTags{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .stagechip.doing{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--accent-soft)}
 .stagechip.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:var(--ok-soft)}
+.pstar{color:var(--accent);margin-right:4px}
+.pstarred .ptile{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
 .pdFacts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:2px 0 0;font-size:14px;background:var(--paper-2);border-radius:12px;padding:10px 12px}
 .pdFacts dt{font-size:12.5px;color:var(--muted);white-space:nowrap;line-height:1.75}
 .pdFacts dd{margin:0;min-width:0;overflow-wrap:anywhere;word-break:break-word}
@@ -418,7 +429,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 <script>
 // 小本本模板版本。升级技能时对照这个号，看页面是不是最新的。
-const TEMPLATE_VERSION = "0.2.14";
+const TEMPLATE_VERSION = "0.2.16";
 // 分类的 key 固定不改；显示名可以在数据库 meta/config 的 areaNames 里改，标题在 meta/config 的 title 里改
 let AREAS = {
   work:{name:"工作",c:"--a-work"}, partner:{name:"另一半",c:"--a-partner"}, me:{name:"我自己",c:"--a-me"},
@@ -728,6 +739,10 @@ function routineLine(r, withBtn){
 }
 // 邮件小结：后台任务写进 meta/mail-notes 的 {entries:[{at, text, seen}]}；文档可能还不存在
 let mailNotes = [], mailOpen = false;
+// 「只看约好时间的」：本周页只留 fixed:true 的事（每个人自己的浏览器记住，不进数据库）
+let fixedOnly = false;
+try { fixedOnly = localStorage.getItem("hub.fixedOnly") === "1"; } catch(e) {}
+function saveFixedOnly(){ try { localStorage.setItem("hub.fixedOnly", fixedOnly ? "1" : "0"); } catch(e) {} }
 const MAIL_MAX = 3;
 const mailKey = e => (e.at || "") + "|" + (e.text || "");
 // 显示和排序都用收到邮件的时间 mailAt，没有就退回写小结的时间 at
@@ -753,17 +768,19 @@ async function markMailSeen(){
   await write(ref, r => r.update({entries}), null); }
 function renderWeek(){
   const t = todayStr(), op = open().filter(i=>i.status!=="someday");
-  const late = op.filter(i=>i.due && i.due < t).sort((a,b)=>a.due<b.due?-1:1);
+  const keep = i => !fixedOnly || !!i.fixed;
+  const late = op.filter(i=>i.due && i.due < t && keep(i)).sort((a,b)=>a.due<b.due?-1:1);
   let h = mailStrip();
+  h += `<div class="wkbar"><button type="button" class="btn sm ghost" data-fixedonly aria-pressed="${fixedOnly}">🔒 只看约好时间的</button></div>`;
   if (late.length) h += `<div class="box oweBox"><h2>还欠着的 <span class="count">${late.length}</span></h2><ul class="items">${late.map(itemRow).join("")}</ul></div>`;
   for (let k=0;k<7;k++){
     const d = addDays(t,k);
     // 没做完的按排的日子（due）；做完的放进「真正做完那天」（doneAt，和勾选时写入的 todayStr() 同一种本地日期），老数据没有 doneAt 就退回 due
-    const liveIt = items.filter(i=>i.due===d && !isClosed(i) && i.status!=="someday" && (!i.daily || k===0)).sort(byTime);
-    const doneIt = items.filter(i=>i.status==="done" && (i.doneAt || i.due)===d).sort(byTime);
+    const liveIt = items.filter(i=>i.due===d && !isClosed(i) && i.status!=="someday" && (!i.daily || k===0) && keep(i)).sort(byTime);
+    const doneIt = items.filter(i=>i.status==="done" && (i.doneAt || i.due)===d && keep(i)).sort(byTime);
     // 跳过的留在排的那天，和做完的一起收在底部折叠里（灰掉），不算进做完/总数
-    const skipIt = items.filter(i=>i.status==="skipped" && i.due===d).sort(byTime);
-    const rs = routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false;
+    const skipIt = items.filter(i=>i.status==="skipped" && i.due===d && keep(i)).sort(byTime);
+    const rs = fixedOnly ? [] : routines.filter(r=>{ const st=rState(r); if (plannedOf(r)) return false;
       if (st.s==="book") return snoozed(r) ? d===r.snooze : k===0;
       if (st.s==="due") return k===0 ? st.nx<=t : st.nx===d;
       if (st.s==="wait" && !r.bookLead) return st.nx===d;
@@ -777,16 +794,20 @@ function renderWeek(){
     h += `<div class="day ${k===0?"today":""} ${wd===0||wd===6?"weekend":""}">
       <div class="dayhead"><span class="dd">${mm}/${dd}</span><span class="wk">${WD[wd]}</span>${k<2?`<span class="rel">${k===0?"今天":"明天"}</span>`:""}${loadTxt}</div>`;
     // 今天：没排时间的（不算 daily）单独放在最上面的「⚠️ 还没排时间」里，不在下面重复
-    const untimed = k===0 ? liveIt.filter(i=>!i.time && !i.daily) : [];
+    const untimed = k===0 && !fixedOnly ? liveIt.filter(i=>!i.time && !i.daily) : [];
     const timedIt = untimed.length ? liveIt.filter(i=>!untimed.includes(i)) : liveIt;
     if (untimed.length) h += `<div class="untimed" role="region" aria-label="还没排时间"><div class="uh"><span>⚠️ 还没排时间</span><span class="count">${untimed.length}</span></div><ul class="items">${untimed.map(itemRow).join("")}</ul></div>`;
     if (timedIt.length) h += `<ul class="items">${timedIt.map(itemRow).join("")}</ul>`;
     if (rs.length) h += rs.map(r=>routineLine(r, k===0)).join("");
-    if (doneIt.length || skipIt.length){ const fo = foldOpen.has(d), sn = skipIt.length;
+    if (!fixedOnly && (doneIt.length || skipIt.length)){ const fo = foldOpen.has(d), sn = skipIt.length;
       const lbl = (doneIt.length ? `<span>已完成<b class="dn">${doneIt.length}</b>件</span>` : "") + (sn ? `<span class="sk">${doneIt.length?"· ":""}跳过 ${sn} 件</span>` : "");
       h += `<div class="fold"><button type="button" class="foldDone" data-fold="${d}" aria-expanded="${fo}"><span class="fk ${doneIt.length?"":"skf"}" aria-hidden="true">${doneIt.length?"✓":"–"}</span>${lbl}<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${fo?`<ul class="items doneList">${[...doneIt, ...skipIt].map(itemRow).join("")}</ul>`:""}</div>`; }
     h += `</div>`;
   }
+  // 「之后排好的」：七天以后已经有日子的事，默认收起，按日子分组
+  const far = op.filter(i=>i.due && i.due > addDays(t,6) && !i.daily && keep(i)).sort((a,b)=>a.due!==b.due ? (a.due<b.due?-1:1) : byTime(a,b));
+  if (far.length){ const days = [...new Set(far.map(i=>i.due))];
+    h += `<details class="box laterBox"><summary><h2>之后排好的 <span class="count">${far.length}</span></h2>${PCAR}</summary>${days.map(d=>`<div class="lday">${esc(relDay(d))}</div><ul class="items">${far.filter(i=>i.due===d).map(itemRow).join("")}</ul>`).join("")}</details>`; }
   const inboxN = op.filter(i=>!i.due && !i.project && (i.kind||"task")==="task").length;
   h += `<div class="status">收件箱里还有 ${inboxN} 件没排日子。</div>`;
   return h;
@@ -807,6 +828,10 @@ function stepWait(i){ if (!i || isClosed(i)) return "";
 // 项目在等什么：手动标的优先，否则看现在这一步（第一件没做完的）。勾掉一步后自动重新算
 function projWait(p){ return waitOf(p) || stepWait(projInfo(p).next); }
 const isWaiting = p => p.stage==="doing" && !!projWait(p);
+// 项目属于哪条线：做完的归档；没标线的——进行中算维护，暂停算以后，想法算「新点子」
+const LANES = {main:"⭐ 主线", experiment:"⭐ 小实验", maintain:"维护", rethink:"重新想", later:"以后"};
+function laneOf(p){ if (p.stage==="done") return "done"; if (p.lane && LANES[p.lane]) return p.lane;
+  return p.stage==="doing" ? "maintain" : p.stage==="paused" ? "later" : "new"; }
 let waitEdit = null;   // 正在填「在等什么」的项目 id
 function projTile(p){
   const {st, done, moved, next} = projInfo(p), {e, n} = splitEmoji(p.title), wt = isWaiting(p);
@@ -820,7 +845,7 @@ function projTile(p){
   const ic = e ? `<span class="pe" aria-hidden="true">${esc(e)}</span>`
     : `<span class="pe" aria-hidden="true"><span class="mono" style="--c:var(${(AREAS[p.area]||AREAS.project).c})">${esc(Array.from(n.trim())[0]||"·")}</span></span>`;
   const lbl = `${p.title}，${st.length ? `做完 ${done.length}/${st.length} 步` : "还没拆步骤"}${wt ? `，等待中：${projWait(p)}` : ""}${idleTxt ? `，${idleTxt}` : ""}`;
-  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${idleTxt?`<span class="idle ${weeks?"wk":""}" aria-hidden="true">${idleTxt}</span>`:""}<span class="pn" aria-hidden="true">${esc(n)}</span>${tag}
+  return `<button type="button" class="ptile ${p.stage==="done"?"done":""} ${wt?"waiting":""}" data-popen="${p.id}" aria-label="${esc(lbl)}">${ic}${idleTxt?`<span class="idle ${weeks?"wk":""}" aria-hidden="true">${idleTxt}</span>`:""}<span class="pn" aria-hidden="true">${p.star && p.stage!=="done" ? `<span class="pstar">★</span>` : ""}${esc(n)}</span>${tag}
     <span class="pfoot" aria-hidden="true"><span class="bar ${pct===0?"zero":""}"><span style="width:${pct}%"></span></span><span class="pc">${st.length?`${done.length}/${st.length}`:"没拆步骤"}</span></span></button>`;
 }
 function projDetail(p){
@@ -845,7 +870,7 @@ function projDetail(p){
   return `<button type="button" class="btn" data-pback style="align-self:flex-start">← 全部项目</button>
     <div class="box pdetail" data-pid="${p.id}">
       <div class="pdHead"><h2>${esc(p.title)}</h2>${menu}</div>
-      <div class="pdTags"><span class="stagechip ${p.stage||"idea"}">${PSTAGE[p.stage||"idea"]||""}</span>${stamp(p.area)}</div>
+      <div class="pdTags"><span class="stagechip ${p.stage||"idea"}">${PSTAGE[p.stage||"idea"]||""}</span>${LANES[laneOf(p)] ? `<span class="stagechip">${LANES[laneOf(p)]}</span>` : ""}${stamp(p.area)}</div>
       ${waitHtml}
       ${st.length?`<div class="prog"><div class="bar ${pct===0?"zero":""}" role="img" aria-label="${done.length} / ${st.length} 步"><span style="width:${pct}%"></span></div><span class="pct">${done.length}/${st.length}<small>步</small></span></div>`:""}
       <dl class="pdFacts">${facts}</dl>
@@ -858,22 +883,29 @@ function projDetail(p){
 const PCAR = '<svg class="car" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M3.6 1.8 7 5 3.6 8.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function renderProjects(){
   if (projOpen){ const p = projects.find(x=>x.id===projOpen); if (p) return projDetail(p); projOpen = null; }
-  const by = s => projects.filter(p=>(p.stage||"idea")===s);
+  // 分线：lane = main 主线 / experiment 小实验 / maintain 维护（该做的）/ rethink 重新想 / later 以后；star = 这季度在推
+  const by = l => projects.filter(p=>laneOf(p)===l);
   // 打平时用：最久没动的在前
   const staleKey = p => String(projInfo(p).moved || p.started || p.created || "").slice(0,10);
   const nextDue = p => projInfo(p).next?.due || "";
-  // 进行中：能动手的在前、等待中的在后；各自按下一步的日期排，最近的最前，没日期的放后面；同一天再按最久没动
-  const doing = by("doing").sort((a,b)=>{ const wa = isWaiting(a), wb = isWaiting(b); if (wa !== wb) return wa ? 1 : -1;
+  // 每组里：进行中的在前；能动手的在前、等待中的在后；各自按下一步的日期排，最近的最前，没日期的放后面；同一天再按最久没动
+  const order = (a,b)=>{ const da = a.stage==="doing", db_ = b.stage==="doing"; if (da !== db_) return da ? -1 : 1;
+    const wa = isWaiting(a), wb = isWaiting(b); if (wa !== wb) return wa ? 1 : -1;
     const dA = nextDue(a), dB = nextDue(b); if (dA !== dB){ if (!dA) return 1; if (!dB) return -1; return dA<dB?-1:1; }
-    const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; });
-  const paused = by("paused"), idea = by("idea"), done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
+    const x = staleKey(a), y = staleKey(b); return x<y?-1:x>y?1:0; };
+  const starred = projects.filter(p=>p.star && p.stage!=="done").sort((a,b)=>(a.lane==="main"?0:1)-(b.lane==="main"?0:1) || order(a,b));
+  const maintain = by("maintain").filter(p=>!p.star).sort(order), rethink = by("rethink").filter(p=>!p.star).sort(order),
+        later = by("later").filter(p=>!p.star).sort(order), fresh = by("new").sort(order),
+        done = by("done").sort((a,b)=>(b.doneAt||"")<(a.doneAt||"")?-1:1);
   const tiles = list => `<div class="ptiles">${list.map(projTile).join("")}</div>`;
   const head = (lbl, n) => `<div class="pgh">${lbl} <span class="count">${n}</span></div>`;
-  return `<div class="status">进行中的最好不超过 3 个。点一个项目看全部步骤。</div>`
-    + `<div class="pgrp">${head("进行中", doing.length)}${doing.length ? tiles(doing) : `<div class="empty">还没有进行中的项目。</div>`}</div>`
-    + (paused.length ? `<div class="pgrp">${head("暂停", paused.length)}${tiles(paused)}</div>` : "")
-    + `<div class="pgrp">${head("想法", idea.length)}${idea.length ? tiles(idea) : `<div class="empty">聊天时冒出来的点子会放在这里。</div>`}
+  return `<div class="status">⭐ 是这个季度在推的：主线 + 小实验，最多两个。维护的按节奏来，「以后」在排队不是放弃。点一个项目看全部步骤。</div>`
+    + `<div class="pgrp pstarred">${head("⭐ 这季度在推", starred.length)}${starred.length ? tiles(starred) : `<div class="empty">还没挑主线。</div>`}</div>`
+    + `<div class="pgrp">${head("维护（该做的）", maintain.length)}${maintain.length ? tiles(maintain) : `<div class="empty">没有要维护的。</div>`}</div>`
+    + (rethink.length ? `<div class="pgrp">${head("重新想", rethink.length)}${tiles(rethink)}</div>` : "")
+    + `<div class="pgrp">${head("新点子", fresh.length)}${fresh.length ? tiles(fresh) : `<div class="empty">聊天时冒出来的点子会先放在这里，小秘书之后帮你分线。</div>`}
       <form class="capture addidea"><input placeholder="新点子" aria-label="新的项目点子"><button class="btn" type="submit">放进点子池</button></form></div>`
+    + (later.length ? `<details class="pgrp" data-later><summary class="pgh">以后 <span class="count">${later.length}</span>${PCAR}</summary>${tiles(later)}</details>` : "")
     + (done.length ? `<details class="pgrp" data-archive ${archiveOpen?"open":""}><summary class="pgh">已完成 <span class="count">${done.length}</span>${PCAR}</summary>${tiles(done)}</details>` : "");
 }
 function areaState(k){
@@ -906,7 +938,10 @@ function listBox(title, list, emptyMsg){
 }
 function renderInbox(){
   const list = open().filter(i=>!i.due && !i.project && i.status!=="someday" && (i.kind||"task")==="task");
-  return listBox("还没排日子的", list, "收件箱是空的。想到什么就从上面丢进来。") + `<div class="status">点一条，给它选一天、选个分类。项目里的步骤在「项目」页。</div>`;
+  // 排在「以后」那条线的项目也在这里露个名字：它们同样是「还没排」的，点一下去项目页
+  const lp = projects.filter(p=>laneOf(p)==="later");
+  const lpHtml = lp.length ? `<div class="box"><h2>以后的项目 <span class="count">${lp.length}</span></h2><div class="lateProj">${lp.map(p=>`<button type="button" class="btn" data-goproj="${p.id}">${esc(p.title)} ›</button>`).join("")}</div></div>` : "";
+  return listBox("还没排日子的", list, "收件箱是空的。想到什么就从上面丢进来。") + lpHtml + `<div class="status">点一条，给它选一天、选个分类。项目里的步骤在「项目」页。</div>`;
 }
 function renderBuy(){ return listBox("要买的", open().filter(i=>i.kind==="buy" && i.status!=="someday"), "没有要买的东西。"); }
 function renderFun(){
@@ -988,6 +1023,7 @@ async function write(ref, fn, okMsg){
 document.addEventListener("click", async ev => {
   const tb = ev.target.closest("#tabs button");
   if (tb){ navTok++; switchTab(tb.dataset.tab, () => { areaFilter=null; q=""; $("#search").value=""; openId=null; projOpen=null; }); return; }
+  if (ev.target.closest("[data-fixedonly]")){ fixedOnly = !fixedOnly; saveFixedOnly(); render(); return; }
   const ml = ev.target.closest("[data-mail]");
   if (ml){ if (ml.dataset.mail === "more"){ mailOpen = true; render(); } else await markMailSeen(); return; }
   const po = ev.target.closest("[data-popen]");
@@ -1125,10 +1161,10 @@ function demoDb(){
   // 邮件小结（后台任务写的）：两条没看过的
   const at = (n, h, m) => { const x = new Date(); x.setDate(x.getDate()+n); x.setHours(h, m, 0, 0); return x.toISOString(); };
   put("meta", {entries:[{at:at(-1,19,40), text:"网上买的台灯已发货，后天送到", seen:false}, {at:at(0,9,15), mailAt:at(0,7,50), text:"牙医诊所发来提醒：今天 16:30 复查，提前 10 分钟到", seen:false}]}, "mail-notes");
-  const pj = put("projects", {title:"📚 整理书房", stage:"doing", area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
+  const pj = put("projects", {title:"📚 整理书房", stage:"doing", lane:"main", star:true, area:"home", why:"桌面清爽一点，坐下就想干活。", eta:"两个周末", started:d(-6)});
   const wp = put("projects", {title:"🩺 体检后续", stage:"doing", area:"health", started:d(-12)});
   put("projects", {title:"学做三道家常菜", stage:"idea", area:"hobby", why:""});
-  put("projects", {title:"🎸 学吉他", stage:"paused", area:"hobby", why:"最近太忙，先放一放。"});
+  put("projects", {title:"🎸 学吉他", stage:"paused", lane:"later", area:"hobby", why:"最近太忙，先放一放。"});
   put("projects", {title:"📱 换一个新手机套餐", stage:"done", area:"money", why:"每个月省一点。", started:d(-30), doneAt:d(-10)});
   [{title:"量一下书桌尺寸", project:pj, step:1, status:"done", doneAt:d(-3), area:"home"},
    {title:"约体检", project:wp, step:1, status:"done", doneAt:d(-9), area:"health"},

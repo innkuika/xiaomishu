@@ -16,7 +16,7 @@ A personal life-assistant for the Claude app, packaged as a Claude skill. It int
 | 待办库 | 一个 Artifact 页面 + 它自带的数据库 | 要做什么、什么时候做 |
 | 节奏 | 定时任务（scheduled tasks） | 每天早晚主动来找你 |
 
-待办库页面有这些标签：本周、项目、分类、收件箱、生活循环（理发、体检这类定期的事）、要买的、闲了玩、以后再说。
+待办库页面有这些标签：本周、项目、分类、收件箱、生活循环（理发、体检这类定期的事）、要买的、闲了玩、以后再说。标签只是从字段算出来的视图；小秘书写待办时按字段写（见 `references/conventions.md` 的【放哪儿】表），不按标签。
 
 ## v0.2 有什么新的
 
